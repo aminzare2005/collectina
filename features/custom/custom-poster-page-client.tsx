@@ -18,14 +18,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import PosterCardSkeleton from "@/components/poster-card-skeleton";
 import PosterCard from "@/components/poster-card";
-import { CustomPosterSelector, uploadAndCreateProductWithFile } from "./custom-poster-selector";
+import {
+  CustomPosterSelector,
+  uploadAndCreateProductWithFile,
+} from "./custom-poster-selector";
 import { Progress } from "@/components/ui/progress";
 
 // تابع فشرده‌سازی تصویر
 const compressImage = async (
   file: File,
   maxWidth = 1200,
-  quality = 0.85
+  quality = 0.85,
 ): Promise<{ blob: Blob; dataUrl: string }> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -69,7 +72,7 @@ const compressImage = async (
             resolve({ blob, dataUrl });
           },
           "image/jpeg",
-          quality
+          quality,
         );
       };
       img.onerror = () => reject(new Error("Failed to load image"));
@@ -80,11 +83,7 @@ const compressImage = async (
   });
 };
 
-export default function CustomPosterPageClient({
-  poster,
-}: {
-  poster: any[];
-}) {
+export default function CustomPosterPageClient({ poster }: { poster: any[] }) {
   const { toast } = useToast();
   const supabase = createClient();
   const [imageUrl, setImageUrl] = useState("");
@@ -148,7 +147,7 @@ export default function CustomPosterPageClient({
     try {
       // فشرده‌سازی تصویر
       const { blob, dataUrl } = await compressImage(file, 1200, 0.85);
-      
+
       // ساخت فایل جدید از blob
       const compressedFile = new File([blob], file.name, {
         type: "image/jpeg",
@@ -164,7 +163,7 @@ export default function CustomPosterPageClient({
       ).toFixed(0);
 
       console.log(
-        `🖼️ Original: ${originalSizeKB}KB → Compressed: ${compressedSizeKB}KB (${reduction}% کاهش)`
+        `🖼️ Original: ${originalSizeKB}KB → Compressed: ${compressedSizeKB}KB (${reduction}% کاهش)`,
       );
 
       // ذخیره فایل فشرده شده
@@ -243,12 +242,14 @@ export default function CustomPosterPageClient({
         } = await supabase.auth.getUser();
 
         if (!user) {
-          localStorage.setItem("backTo", `/poster/custom`)
+          localStorage.setItem("backTo", `/poster/custom`);
           router.push(`/auth/login`);
           return;
         }
 
-        console.log(`📤 شروع آپلود... (تلاش ${retryCount + 1}/${maxRetries + 1})`);
+        console.log(
+          `📤 شروع آپلود... (تلاش ${retryCount + 1}/${maxRetries + 1})`,
+        );
 
         // استفاده از فایل به جای base64
         const result = await uploadAndCreateProductWithFile(
@@ -257,7 +258,7 @@ export default function CustomPosterPageClient({
           supabase,
           (progress: any) => {
             setUploadProgress(progress);
-          }
+          },
         );
 
         return result;
@@ -274,7 +275,7 @@ export default function CustomPosterPageClient({
         if (retryCount < maxRetries && isRetryableError) {
           retryCount++;
           const waitTime = retryCount * 2000; // 2s, 4s
-          
+
           toast({
             title: `🔄 تلاش مجدد ${retryCount}/${maxRetries}`,
             description: `لطفاً ${waitTime / 1000} ثانیه صبر کنید...`,
@@ -373,9 +374,8 @@ export default function CustomPosterPageClient({
         {/* Upload Section */}
         <div className="flex flex-col gap-4">
           <div className="opacity-70 cursor-pointer inline-flex flex-wrap gap-x-2 font-light text-sm">
-            <Link href={"/"}>ویلون فارسی</Link>/
-            <Link href={"/poster"}>پوستر</Link>/
-            <Link href={"/poster/custom"}>کاستوم</Link>
+            <Link href={"/"}>کالکتینا</Link>/<Link href={"/poster"}>پوستر</Link>
+            /<Link href={"/poster/custom"}>کاستوم</Link>
           </div>
           {/* Header */}
           <h1 className="text-3xl lg:text-4xl font-bold text-white pb-4">
@@ -388,10 +388,10 @@ export default function CustomPosterPageClient({
                       isDragging
                         ? "border-blue-500 bg-blue-500/10"
                         : imageUrl && !isImageLoading
-                        ? createdProductId
-                          ? "border-green-600/70 bg-green-500/5"
-                          : "border-green-600/70 bg-green-500/5"
-                        : "border-zinc-700 hover:border-zinc-600"
+                          ? createdProductId
+                            ? "border-green-600/70 bg-green-500/5"
+                            : "border-green-600/70 bg-green-500/5"
+                          : "border-zinc-700 hover:border-zinc-600"
                     }
                     ${
                       isImageLoading ? "border-yellow-500 bg-yellow-500/10" : ""
@@ -532,7 +532,9 @@ export default function CustomPosterPageClient({
                   <div className="flex items-center gap-2">
                     <Loader2 className="size-5 animate-spin" />
                     <span className="hidden sm:inline">
-                      {uploadProgress > 0 ? `${uploadProgress}%` : "در حال آپلود..."}
+                      {uploadProgress > 0
+                        ? `${uploadProgress}%`
+                        : "در حال آپلود..."}
                     </span>
                   </div>
                 ) : createdProductId ? (

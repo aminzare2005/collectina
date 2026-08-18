@@ -24,7 +24,7 @@ export function ProductUnavailableNotice({ title, description }: Props) {
         </div>
       </div>
       <Button variant="secondary" className="h-12 w-full gap-2" asChild>
-        <Link href="https://t.me/vlonefarsi">
+        <Link href="https://t.me/collectina">
           <Send className="size-4" />
           عضویت در کانال تلگرام
         </Link>

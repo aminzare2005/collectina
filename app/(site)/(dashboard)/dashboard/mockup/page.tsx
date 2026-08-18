@@ -12,7 +12,7 @@ function page() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
-  const id = searchParams.get("id") || "vlonefarsi-mockup";
+  const id = searchParams.get("id") || "collectina-mockup";
   const image_url = searchParams.get("image_url") || "/images/mockup-bg.png";
   const type = searchParams.get("type") || "phonecase";
   const returnType = type === "phonecase" ? "phonecase" : type === "poster" ? "poster" : ""

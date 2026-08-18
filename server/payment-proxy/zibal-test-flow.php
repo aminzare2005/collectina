@@ -6,10 +6,10 @@ declare(strict_types=1);
  * One-click Zibal flow test on cPanel.
  *
  * Upload path:
- *   public_html/vlonefarsi/zibal-test-flow.php
+ *   public_html/collectina/zibal-test-flow.php
  *
  * Usage:
- *   https://fetchme.ir/vlonefarsi/zibal-test-flow.php
+ *   https://fetchme.ir/collectina/zibal-test-flow.php
  *
  * Creates a fresh payment request, then redirects the browser to the gateway.
  * Use this only for debugging. trackId values expire quickly.

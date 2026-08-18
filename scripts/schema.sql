@@ -1,5 +1,5 @@
 -- ============================================================================
--- vlonefarsi — DATABASE SCHEMA (single source of truth)
+-- collectina — DATABASE SCHEMA (single source of truth)
 -- ============================================================================
 -- Run this file anywhere (Supabase SQL editor, psql, supabase db push, a fresh
 -- project) to recreate the entire database: tables, constraints, RLS policies,

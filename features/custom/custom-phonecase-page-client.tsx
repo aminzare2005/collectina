@@ -218,7 +218,7 @@ export default function CustomPhoneCasePageClient({
         {/* Upload Section */}
         <div className="flex flex-col gap-4">
           <div className="opacity-70 cursor-pointer inline-flex flex-wrap gap-x-2 font-light text-sm">
-            <Link href={"/"}>ویلون فارسی</Link>/
+            <Link href={"/"}>کالکتینا</Link>/
             <Link href={"/phonecase"}>قاب موبایل</Link>/
             <Link href={"/phonecase/custom"}>کاستوم</Link>
           </div>

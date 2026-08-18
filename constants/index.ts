@@ -36,7 +36,7 @@ export const MENU_ITEMS = [
     disabled: false,
   },
   {
-    title: "درباره ویلون فارسی",
+    title: "درباره کالکتینا",
     href: "/about",
     new: false,
     disabled: false,

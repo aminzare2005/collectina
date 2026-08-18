@@ -18,7 +18,7 @@ export function ProductBreadcrumbs({
       className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground"
     >
       <Link href="/" className="transition-colors hover:text-foreground">
-        ویلون فارسی
+      کالکتینا
       </Link>
       <ChevronLeft className="size-3.5 opacity-50" aria-hidden />
       <Link

@@ -108,7 +108,7 @@ export default function SignupPage() {
       <div className="flex flex-col gap-6">
         <Card className="bg-transparent! border-0! shadow-none">
           <CardHeader>
-            <CardTitle className="text-2xl">ثبت نام در ویلون فارسی</CardTitle>
+            <CardTitle className="text-2xl">ثبت نام در کالکتینا</CardTitle>
             <CardDescription>اکانت جدید خودت رو ایجاد کن</CardDescription>
           </CardHeader>
           <CardContent>

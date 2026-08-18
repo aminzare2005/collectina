@@ -132,7 +132,7 @@ export default function Header() {
               height={32}
               className="size-6 dark:invert invert-0"
             />
-            <h1>ویلون فارسی</h1>
+            <h1>کالکتینا</h1>
           </Link>
 
           <div className="flex gap-0.5 items-center relative">

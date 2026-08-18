@@ -27,9 +27,9 @@ export default function AboutPage() {
           {/* ستون دوم: متن محتوا */}
           <div className="space-y-6">
             <h2 className="text-3xl font-bold tracking-tight">داستان ما</h2>
-            <div className="space-y-4 text-muted-foreground leading-7">
+            {/* <div className="space-y-4 text-muted-foreground leading-7">
               <p>
-                برند <strong className="text-foreground">ویلون فارسی</strong>{" "}
+                برند <strong className="text-foreground">کالکتینا</strong>{" "}
                 اوایل سال ۲۰۲۴ با هدف عرضه محصولاتی منحصر به فرد تاسیس شد. اسم
                 ما از برند VLONE در نیویورک الهام گرفته شده که انقلابی در صنعت
                 موسیقی و فشن ایجاد کرد.
@@ -42,16 +42,16 @@ export default function AboutPage() {
               <p className="font-semibold text-foreground">
                 ممنونیم که در این مسیر کنار ما هستید.
               </p>
-            </div>
+            </div> */}
 
             {/* لینک های ارتباطی */}
             <div className="flex flex-wrap gap-3 pt-4">
-              <Link href="https://instagram.com/vlonefarsi" target="_blank">
+              <Link href="https://instagram.com/collectina" target="_blank">
                 <Button variant="outline" className="gap-2">
                   <InstagramIcon className="w-4 h-4" /> اینستاگرام
                 </Button>
               </Link>
-              <Link href="https://t.me/vlonefarsi" target="_blank">
+              <Link href="https://t.me/collectina" target="_blank">
                 <Button variant="outline" className="gap-2">
                   <SendIcon className="w-4 h-4" /> تلگرام
                 </Button>
@@ -69,7 +69,7 @@ export default function AboutPage() {
       {/* فوتر استاندارد */}
       <footer className="mt-24 text-center text-xs text-muted-foreground">
         <div dir="ltr">
-          © {new Date().getFullYear()} VLONEFARSI • <DisplayVersion />
+          © {new Date().getFullYear()} COLLECTINA • <DisplayVersion />
         </div>
         <Link
           href="https://aminzare.me"

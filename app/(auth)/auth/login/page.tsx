@@ -113,7 +113,7 @@ export default function LoginPage({
       <div className="flex flex-col gap-6">
         <Card className="bg-transparent! border-0! shadow-none">
           <CardHeader>
-            <CardTitle className="text-2xl">ورود به ویلون فارسی</CardTitle>
+            <CardTitle className="text-2xl">ورود به کالکتینا</CardTitle>
             <CardDescription>
               برای ورود، شماره تماس و رمز عبور خودت رو وارد کن
             </CardDescription>

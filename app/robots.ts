@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/dashboard/', '/cart/', '/admin/'],
     },
-    sitemap: 'https://vlonefarsi.ir/sitemap.xml',
+    sitemap: 'https://collectina.ir/sitemap.xml',
   }
 }

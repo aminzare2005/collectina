@@ -4,8 +4,7 @@ Guide for AI agents (and humans) working on this repository.
 
 ## Project Overview
 
-**vlonefarsi** — the official e-commerce store of the Persian streetwear/brand account
-@VLONEFARSI (Instagram/Telegram). Sells two product types:
+**collectina** — the official e-commerce store of the Persian streetwear/brand. Sells two product types:
 
 - **قاب موبایل (phone cases)** — design prints for 300+ phone models
 - **پوستر (posters)** — wall art prints
@@ -125,7 +124,7 @@ Flow (all initiated from `components/checkout-form.tsx`):
 4. `app/api/payment/request/route.ts` → `amount * 10` (Rials) → `lib/zibal-proxy.ts`
    → `POST {ZIBAL_PROXY_URL}/zibal-request.php` with header `X-Proxy-Secret`.
 5. On `result === 100`, returns `paymentStartUrl` → `GET /api/payment/start?trackId=…` which
-   **302-redirects** to `https://gateway.zibal.ir/start/{trackId}` (Referer stays `vlonefarsi.ir`).
+   **302-redirects** to `https://gateway.zibal.ir/start/{trackId}` (Referer stays `collectina.ir`).
 6. Zibal redirects the browser back to `{NEXT_PUBLIC_APP_URL}/api/payment/verify?success=1&trackId=…&orderId=…`.
 7. `app/api/payment/verify/route.ts` verifies via `zibal-verify.php`; on success sets order
    `status='paid'`, deletes the user's `cart_items`, redirects to `/order-success?orderId=…`;
@@ -201,8 +200,8 @@ product type, extend `SHIPPING_GROUP_BY_PRODUCT_TYPE` and `SHIPPING_GROUP_LABELS
 ```env
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
-NEXT_PUBLIC_APP_URL=https://vlonefarsi.ir
-ZIBAL_PROXY_URL=https://fetchme.ir/vlonefarsi
+NEXT_PUBLIC_APP_URL=https://collectina.ir
+ZIBAL_PROXY_URL=https://fetchme.ir/collectina
 ZIBAL_PROXY_SECRET=            # must match server/payment-proxy/config.php
 NEXT_PUBLIC_ADMIN_PHONE_NUMBER=  # phone number (09…) whose user is the admin
 ```

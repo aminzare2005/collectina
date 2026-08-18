@@ -14,7 +14,7 @@ function SupportPage() {
         درصورتی که به مشکلی خوردید با پشتیبانی تلگرام در ارتباط باشید تا توی
         سریع‌ترین زمان ممکن مشکلتون حل بشه.
       </p>
-      <Link target="_blank" href={"https://t.me/vlonefarsi?direct"}>
+      <Link target="_blank" href={"https://t.me/collectina?direct"}>
         <Button size="lg" dir="ltr" className="gap-0.5 w-full">
           <Image
             src={"/images/logo.svg"}
@@ -23,7 +23,7 @@ function SupportPage() {
             width={40}
             className="size-4"
           />
-          t.me/vlonefarsi?direct
+          t.me/collectina?direct
         </Button>
       </Link>
     </div>

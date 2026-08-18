@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "VLONEFARSI - AUTH",
+  title: "collectina - AUTH",
 };
 
 export default function AuthLayout({

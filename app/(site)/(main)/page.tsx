@@ -27,7 +27,7 @@ export default async function HomePage() {
           شو.
         </p>
         <Button size="lg" className="h-12 px-8 gap-2" asChild>
-          <Link href="https://t.me/vlonefarsi">
+          <Link href="https://t.me/collectina">
             <Send className="size-4" />
             عضویت در کانال تلگرام
           </Link>
@@ -44,7 +44,7 @@ export default async function HomePage() {
         <section className="flex flex-col gap-4 mt-2">
           <HomeSectionHeader
             title="پوسترها"
-            description="جدیدترین محصول ویلون فارسی"
+            description="جدیدترین محصول کالکتینا"
             href="/poster"
           />
           <PosterGrid pageSize={4} infinite={false} />

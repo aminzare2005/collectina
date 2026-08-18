@@ -26,7 +26,7 @@ export default function HomeBridge() {
     >
       <div className="mb-4 space-y-1 text-center md:mb-5 md:text-start">
         <h2 className="text-base font-semibold md:text-lg">
-          چرا از ویلون فارسی؟
+          چرا از کالکتینا؟
         </h2>
         <p className="text-sm text-muted-foreground">
           خرید ساده، ارسال مطمئن، پشتیبانی واقعی

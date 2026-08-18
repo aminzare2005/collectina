@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Shared config for Zibal proxy on cPanel.
  *
  * Upload path:
- *   public_html/vlonefarsi/config.php
+ *   public_html/collectina/config.php
  */
 
 return [
@@ -17,7 +17,7 @@ return [
     'proxy_secret' => 'PASTE_A_LONG_RANDOM_SECRET',
 
     // Only callbacks on this host are accepted
-    'allowed_callback_host' => 'vlonefarsi.ir',
+    'allowed_callback_host' => 'collectina.ir',
 
     'zibal_request_url' => 'https://gateway.zibal.ir/v1/request',
     'zibal_verify_url' => 'https://gateway.zibal.ir/v1/verify',

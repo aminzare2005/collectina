@@ -135,7 +135,7 @@ export default async function AdminDashboardPage() {
               </div>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              کل سفارش‌های ویلون فارسی
+              کل سفارش‌های کالکتینا
             </p>
           </CardContent>
         </Card>

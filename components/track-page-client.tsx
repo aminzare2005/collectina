@@ -163,7 +163,7 @@ export default function TrackPageClient({ order }: { order: any }) {
               <Link href="/" target="_blank" className="w-full">
                 <Button variant="default" size="lg" className="w-full">
                   <LinkIcon />
-                  بازگشت به ویلون فارسی
+                  بازگشت به کالکتینا
                 </Button>
               </Link>
               {/* <Link href="/dashboard" target="_blank" className="w-full">

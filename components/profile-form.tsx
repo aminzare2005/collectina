@@ -356,7 +356,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             className={`bg-background! pl-7 rounded-xl border-muted focus:ring-2 focus:ring-primary/30 ${
               errors.telegram ? "border-destructive" : ""
             }`}
-            placeholder="vlonefarsi :مثال"
+            placeholder="collectina :مثال"
             value={formData.telegram.replace(/^@/, "")}
             onChange={handleFieldChange("telegram")}
             onBlur={handleFieldBlur("telegram")}
