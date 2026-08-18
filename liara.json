@@ -1,0 +1,8 @@
+{
+  "app": "vlonefarsi",
+  "port": 3000,
+  "build": {
+    "location": "iran"
+  },
+  "disks": []
+}

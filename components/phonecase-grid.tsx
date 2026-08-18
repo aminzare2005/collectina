@@ -1,0 +1,137 @@
+"use client";
+
+import { useEffect, useRef, useState, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
+import PhonecaseCard from "@/components/phonecaseCard";
+import { useInView } from "react-intersection-observer";
+import PhonecaseCardSkeleton from "./phonecaseCardSkeleton";
+import EmptyCommon from "./empty-common";
+
+type Product = {
+  id: string;
+  name: string;
+  image_url: string;
+  created_at: string;
+};
+
+type ProductsGridProps = {
+  pageSize?: number;
+  infinite?: boolean;
+};
+
+export default function PhonecaseGrid({
+  pageSize = 8,
+  infinite = true,
+}: ProductsGridProps) {
+  const supabase = createClient();
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [page, setPage] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  const loadingRef = useRef(false);
+
+  const { ref, inView } = useInView({
+    rootMargin: "400px",
+  });
+
+  useEffect(() => {
+    async function init() {
+      const { data } = await supabase.auth.getUser();
+
+      const admin =
+        data.user?.phone === process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER;
+
+      setIsAdmin(admin ?? false);
+    }
+
+    init();
+  }, []);
+
+  const fetchMore = useCallback(async () => {
+    if (loadingRef.current || !hasMore || isAdmin === null) return;
+
+    loadingRef.current = true;
+    setIsLoading(true);
+
+    const from = page * pageSize;
+    const to = from + pageSize - 1;
+
+    let query = supabase
+      .from("products")
+      .select("*")
+      .eq("type", "phonecase")
+      .eq("feed", true)
+      .order("pin", { ascending: false })
+      .order("created_at", { ascending: false })
+      .range(from, to);
+      
+    const { data, error } = await query;
+
+    if (error) {
+      console.error(error);
+      loadingRef.current = false;
+      setIsLoading(false);
+      return;
+    }
+
+    if (!data || data.length < pageSize) {
+      setHasMore(false);
+    }
+
+    if (data && data.length > 0) {
+      setProducts((prev) => [...prev, ...data]);
+      setPage((prev) => prev + 1);
+    }
+
+    loadingRef.current = false;
+    setIsLoading(false);
+  }, [page, pageSize, hasMore, isAdmin]);
+
+  useEffect(() => {
+    if (isAdmin !== null && products.length === 0) {
+      fetchMore();
+    }
+  }, [isAdmin]);
+
+  // infinite scroll
+  useEffect(() => {
+    if (infinite && inView) {
+      fetchMore();
+    }
+  }, [inView, fetchMore, infinite]);
+
+  if (!isLoading && products.length === 0) {
+    return (
+      <EmptyCommon
+        title="فعلا قاب موبایل نداریم"
+        description="به‌زودی طرح‌های جدید اضافه می‌شن"
+      />
+    );
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4 sm:gap-8 md:gap-12 md:grid-cols-4 mb-0 md:mb-4">
+        {products.map((product) => (
+          <PhonecaseCard
+            key={product.id}
+            href={`/phonecase/${product.id}`}
+            image_url={product.image_url}
+            name={product.name}
+            size="big"
+          />
+        ))}
+
+        {isLoading &&
+          Array.from({ length: Math.min(pageSize, 4) }).map((_, idx) => (
+            <PhonecaseCardSkeleton size="big" key={idx} />
+          ))}
+      </div>
+
+      {infinite && <div ref={ref} />}
+    </>
+  );
+}
