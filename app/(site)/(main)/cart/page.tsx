@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { authClient } from "@/lib/auth-client";
 import { CartItem, CartItemSkeleton } from "@/components/cart-item";
 import {
   CheckoutForm,
@@ -78,20 +77,20 @@ export default function CartCheckoutPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: session } = await authClient.getSession();
-
-        if (!session?.user) {
-          setIsAuthenticated(false);
-          return;
-        }
-
-        setIsAuthenticated(true);
-
         const [cartRes, profileRes, settingsRes] = await Promise.all([
           fetch("/api/cart"),
           fetch("/api/profile"),
           fetch("/api/settings"),
         ]);
+
+        // /api/cart returns 401 for anonymous users — no separate session
+        // round trip needed before fetching.
+        if (cartRes.status === 401) {
+          setIsAuthenticated(false);
+          return;
+        }
+
+        setIsAuthenticated(true);
 
         const cart = cartRes.ok ? await cartRes.json() : [];
         const profile = profileRes.ok ? await profileRes.json() : null;

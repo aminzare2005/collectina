@@ -1,4 +1,5 @@
-import { ProductRepository, VariantRepository } from "@/lib/repositories";
+import { ProductRepository } from "@/lib/repositories";
+import { getCachedPosterCatalog } from "@/lib/cache";
 import { notFound } from "next/navigation";
 import AdminBar from "@/components/admin-bar";
 import PosterCard from "@/components/poster-card";
@@ -22,7 +23,7 @@ export default async function ProductPage({
     notFound();
   }
 
-  const posters = await VariantRepository.getAllPosters();
+  const posters = await getCachedPosterCatalog();
 
   return (
     <>

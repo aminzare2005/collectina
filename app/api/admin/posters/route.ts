@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth-helpers";
+import { invalidateCache } from "@/lib/cache";
 import { VariantRepository } from "@/lib/repositories";
 
 /**
@@ -28,6 +29,7 @@ export async function POST(request: NextRequest) {
 
   const data = await request.json();
   const poster = await VariantRepository.createPoster(data);
+  invalidateCache("catalog");
   return NextResponse.json(poster);
 }
 
@@ -43,6 +45,7 @@ export async function PUT(request: NextRequest) {
 
   const { id, ...data } = await request.json();
   const poster = await VariantRepository.updatePoster(id, data);
+  invalidateCache("catalog");
   return NextResponse.json(poster);
 }
 
@@ -62,5 +65,6 @@ export async function DELETE(request: NextRequest) {
   }
 
   await VariantRepository.deletePoster(id);
+  invalidateCache("catalog");
   return NextResponse.json({ success: true });
 }

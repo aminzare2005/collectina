@@ -288,6 +288,12 @@ CREATE INDEX IF NOT EXISTS products_type_idx ON public.products (type);
 CREATE INDEX IF NOT EXISTS products_feed_idx ON public.products (feed);
 CREATE INDEX IF NOT EXISTS products_pin_idx ON public.products (pin);
 CREATE INDEX IF NOT EXISTS products_created_at_idx ON public.products (created_at DESC);
+-- Composite index for the product feed queries:
+--   WHERE type = $1 AND feed = true ORDER BY pin DESC, created_at DESC
+-- Without it Postgres does a seq scan + sort of the whole table on every
+-- paginated grid request (see ProductRepository.getFeed / getPinned).
+CREATE INDEX IF NOT EXISTS products_feed_query_idx
+  ON public.products (type, feed, pin DESC, created_at DESC);
 CREATE INDEX IF NOT EXISTS cart_items_user_idx ON public.cart_items (user_id);
 CREATE INDEX IF NOT EXISTS orders_user_idx ON public.orders (user_id);
 CREATE INDEX IF NOT EXISTS orders_status_idx ON public.orders (status);

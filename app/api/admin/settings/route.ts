@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth-helpers";
+import { invalidateCache } from "@/lib/cache";
 import { SettingsRepository } from "@/lib/repositories";
 
 /**
@@ -28,5 +29,6 @@ export async function PUT(request: NextRequest) {
 
   const data = await request.json();
   const settings = await SettingsRepository.update(data);
+  invalidateCache("settings");
   return NextResponse.json(settings);
 }

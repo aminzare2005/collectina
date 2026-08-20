@@ -11,7 +11,7 @@ type Props = {
 };
 async function AdminBar(props: Props) {
   const user = await getCurrentUser();
-  const admin = await isAdmin();
+  const admin = await isAdmin(user);
 
   if (!user || !admin) {
     return;
