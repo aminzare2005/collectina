@@ -1,4 +1,5 @@
-import { ProductRepository, VariantRepository } from "@/lib/repositories";
+import { ProductRepository } from "@/lib/repositories";
+import { getCachedPhoneCaseCatalog } from "@/lib/cache";
 import { PhoneCaseSelector } from "@/components/phone-case-selector";
 import { notFound } from "next/navigation";
 import PhonecaseCard from "@/components/phonecaseCard";
@@ -22,7 +23,7 @@ export default async function ProductPage({
     notFound();
   }
 
-  const phoneCases = await VariantRepository.getAllPhoneCases();
+  const phoneCases = await getCachedPhoneCaseCatalog();
 
   return (
     <>

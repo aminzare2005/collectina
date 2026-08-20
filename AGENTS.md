@@ -92,6 +92,7 @@ features/custom/            # Admin-only custom design upload flow (image → st
   custom-phonecase-page-client.tsx, custom-phonecase-selector.tsx (exports uploadAndCreateProduct)
   custom-poster-page-client.tsx, custom-poster-selector.tsx
 lib/
+  cache.ts                  # In-process TTL cache: settings, phone-case/poster catalogs, product feed pages
   db/pool.ts                # postgres.js connection pool (DATABASE_URL)
   auth.ts                   # Better Auth server config (phone+password, postgresql adapter)
   auth-client.ts            # Better Auth client (browser-side, signIn.phoneNumber, useSession)
@@ -107,6 +108,7 @@ helpers/should-i-render.ts  # Reads settings (show_poster, show_phonecase, top_b
 hooks/                      # use-logout, use-phone-formatter, use-resize-observer-height, use-toast
 server/payment-proxy/       # PHP files to deploy to cPanel (see docs/zibal-proxy-setup.md)
 scripts/schema-complete.sql   # SINGLE FILE — run this on fresh PostgreSQL (creates everything)
+scripts/migrations/           # Incremental SQL for the production DB (e.g. 2026-08-20-product-feed-index.sql)
 docs/zibal-proxy-setup.md   # Full Zibal proxy architecture doc (Persian)
 proxy.ts                    # Next.js proxy (middleware equivalent) — session refresh + route guard
 ```
@@ -258,6 +260,12 @@ NEXT_PUBLIC_ADMIN_PHONE_NUMBER=  # phone number (09…) whose user is the admin
   converted to Rials (`* 10`) only in `/api/payment/request`.
 - **`next.config.mjs` sets `typescript.ignoreBuildErrors: true`** — `npm run build` will NOT fail on
   TS errors. Run `npx tsc --noEmit` yourself after non-trivial changes.
+- **Read-heavy data is cached in-process via `lib/cache.ts`** (module-level Map + TTL, no framework
+  dependency): settings (60s), phone-case/poster catalogs (5 min), and product feed pages (60s).
+  Public GET routes (`/api/products`, `/api/settings`) also send `Cache-Control: s-maxage=60,
+  stale-while-revalidate=120` for CDN caching on Vercel. Admin mutation routes call
+  `invalidateCache("settings" | "feed" | "catalog")` so changes appear immediately — remember to
+  invalidate when adding a new admin route that mutates those tables.
 - **Images are unoptimized** (`images.unoptimized: true`, `qualities: [40, 75]`); components pass
   `quality={40|75}` explicitly and use small intrinsic sizes.
 - shadcn/ui components live in `components/ui/`; regenerate with `npx shadcn@latest add <name>`.

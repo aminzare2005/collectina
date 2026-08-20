@@ -1,6 +1,6 @@
 import CustomPosterPageClient from "@/features/custom/custom-poster-page-client";
 import { getCurrentUser, isAdmin } from "@/lib/auth-helpers";
-import { VariantRepository } from "@/lib/repositories";
+import { getCachedPosters } from "@/lib/cache";
 import { notFound, redirect } from "next/navigation";
 
 export default async function ProductPage() {
@@ -15,7 +15,7 @@ export default async function ProductPage() {
     redirect(notFound());
   }
 
-  const poster = await VariantRepository.getAllPosters();
+  const poster = await getCachedPosters();
 
   return <CustomPosterPageClient poster={poster} />;
 }

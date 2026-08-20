@@ -37,11 +37,16 @@ export async function getCurrentUser() {
 /**
  * Check if the current user is the admin.
  * Admin is identified by phone number matching the env var.
+ *
+ * Pass an already-fetched user to avoid a second session lookup
+ * (getCurrentUser() hits the DB every time).
  */
-export async function isAdmin(): Promise<boolean> {
-  const user = await getCurrentUser();
-  if (!user?.phoneNumber) return false;
-  return user.phoneNumber === process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER;
+export async function isAdmin(
+  user?: Awaited<ReturnType<typeof getCurrentUser>>,
+): Promise<boolean> {
+  const currentUser = user ?? (await getCurrentUser());
+  if (!currentUser?.phoneNumber) return false;
+  return currentUser.phoneNumber === process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER;
 }
 
 /**

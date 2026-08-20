@@ -20,10 +20,9 @@ import { ProductUnavailableNotice } from "@/components/product/product-unavailab
 
 type Posters = {
   id: string;
-  attribute: string;
+  attribute: string | null;
   price: string;
   available: boolean;
-  created_at: string;
 };
 
 type PosterSelectorProps = {

@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { MENU_ITEMS } from "@/constants";
 import SwitchTheme from "./switch-theme";
-import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 
 export default function Header() {
@@ -43,13 +42,8 @@ export default function Header() {
 
     const fetchCartCount = async () => {
       try {
-        const { data: session } = await authClient.getSession();
-
-        if (!session?.user) {
-          if (!cancelled) setCartCount(0);
-          return;
-        }
-
+        // /api/cart/count already returns { count: 0 } for anonymous users,
+        // so no need for a separate session round trip first.
         const res = await fetch("/api/cart/count");
         if (res.ok) {
           const data = await res.json();

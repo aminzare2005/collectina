@@ -24,7 +24,6 @@ type PhoneCase = {
   model: string;
   price: number;
   available: boolean;
-  created_at: string;
 };
 
 type PhoneCaseSelectorProps = {

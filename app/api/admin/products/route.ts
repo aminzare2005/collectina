@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, isAdmin } from "@/lib/auth-helpers";
+import { invalidateCache } from "@/lib/cache";
 import { ProductRepository } from "@/lib/repositories";
 
 /**
@@ -33,6 +34,7 @@ export async function POST(request: NextRequest) {
 
     const data = await request.json();
     const product = await ProductRepository.create(data);
+    invalidateCache("feed");
     return NextResponse.json(product);
   } catch (error) {
     console.error("Create product error:", error);
@@ -55,6 +57,7 @@ export async function PUT(request: NextRequest) {
 
   const { id, ...data } = await request.json();
   const product = await ProductRepository.update(id, data);
+  invalidateCache("feed");
   return NextResponse.json(product);
 }
 
@@ -74,5 +77,6 @@ export async function DELETE(request: NextRequest) {
   }
 
   await ProductRepository.delete(id);
+  invalidateCache("feed");
   return NextResponse.json({ success: true });
 }

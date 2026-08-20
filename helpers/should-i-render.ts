@@ -1,4 +1,4 @@
-import { SettingsRepository } from "@/lib/repositories";
+import { getCachedSettings } from "@/lib/cache";
 
 export type ShouldIRenderType = {
   show_poster: boolean;
@@ -7,7 +7,7 @@ export type ShouldIRenderType = {
 };
 
 export default async function ShouldIRender(): Promise<ShouldIRenderType> {
-  const settings = await SettingsRepository.get();
+  const settings = await getCachedSettings();
 
   if (!settings) {
     return { show_poster: false, show_phonecase: false, top_banner: "" };

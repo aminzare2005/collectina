@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { authClient } from "@/lib/auth-client";
 import PhonecaseCard from "@/components/phonecaseCard";
 import { useInView } from "react-intersection-observer";
 import PhonecaseCardSkeleton from "./phonecaseCardSkeleton";
@@ -27,7 +26,6 @@ export default function PhonecaseGrid({
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   const loadingRef = useRef(false);
 
@@ -35,25 +33,13 @@ export default function PhonecaseGrid({
     rootMargin: "400px",
   });
 
-  useEffect(() => {
-    async function init() {
-      const { data: session } = await authClient.getSession();
-      const admin =
-        (session?.user as Record<string, unknown>)?.phoneNumber === process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER;
-      setIsAdmin(admin ?? false);
-    }
-
-    init();
-  }, []);
-
   const fetchMore = useCallback(async () => {
-    if (loadingRef.current || !hasMore || isAdmin === null) return;
+    if (loadingRef.current || !hasMore) return;
 
     loadingRef.current = true;
     setIsLoading(true);
 
     const from = page * pageSize;
-    const to = from + pageSize - 1;
 
     try {
       const res = await fetch(`/api/products?type=phonecase&offset=${from}&limit=${pageSize}&feed=true`);
@@ -74,15 +60,14 @@ export default function PhonecaseGrid({
       loadingRef.current = false;
       setIsLoading(false);
     }
+  }, [page, pageSize, hasMore]);
 
-
-  }, [page, pageSize, hasMore, isAdmin]);
-
+  // initial load
   useEffect(() => {
-    if (isAdmin !== null && products.length === 0) {
+    if (products.length === 0) {
       fetchMore();
     }
-  }, [isAdmin]);
+  }, [fetchMore, products.length]);
 
   // infinite scroll
   useEffect(() => {
