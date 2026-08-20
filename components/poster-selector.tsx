@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -44,8 +44,6 @@ export function PosterSelector({
 
   const router = useRouter();
   const { toast } = useToast();
-  const supabase = createClient();
-
   const isPosterEnabled = shouldIRender.show_poster;
 
   const selectedPoster = posters.find(
@@ -81,39 +79,20 @@ export function PosterSelector({
     setIsLoading(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: session } = await authClient.getSession();
 
-      if (!user) {
+      if (!session?.user) {
         localStorage.setItem("backTo", `/poster/${productId}`);
         router.push(`/auth/login`);
         return;
       }
 
-      const { data: existingItem } = await supabase
-        .from("cart_items")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("product_id", productId)
-        .eq("poster_id", selectedPosterId)
-        .single();
-
-      if (existingItem) {
-        const { error } = await supabase
-          .from("cart_items")
-          .update({ quantity: existingItem.quantity + 1 })
-          .eq("id", existingItem.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("cart_items").insert({
-          user_id: user.id,
-          product_id: productId,
-          poster_id: selectedPosterId,
-          quantity: 1,
-        });
-        if (error) throw error;
-      }
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, posterId: selectedPosterId }),
+      });
+      if (!res.ok) throw new Error("Failed to add to cart");
 
       toast({
         title: "به سبد اضافه شد",

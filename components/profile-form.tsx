@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { Textarea } from "./ui/textarea";
 import { z } from "zod";
 
@@ -68,7 +68,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
   const router = useRouter();
   const { toast } = useToast();
-  const supabase = createClient();
 
   useEffect(() => {
     const validateForm = async () => {
@@ -127,25 +126,24 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         phoneNumber: formData.phoneNumber.replace(/\s/g, ""),
       });
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: session } = await authClient.getSession();
 
-      if (!user) throw new Error("User not authenticated");
+      if (!session?.user) throw new Error("User not authenticated");
 
-      const { error } = await supabase
-        .from("profiles")
-        .update({
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           display_name: validatedData.displayName,
           phone_number: validatedData.phoneNumber,
           address: validatedData.address,
           city: validatedData.city,
           postal_code: validatedData.postalCode,
           telegram: validatedData.telegram,
-        })
-        .eq("id", user.id);
+        }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error("Failed to update profile");
 
       toast({
         title: "اطلاعات شما با موفقیت ذخیره شد",

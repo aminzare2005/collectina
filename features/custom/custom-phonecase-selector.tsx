@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -37,8 +37,6 @@ export function CustomPhoneCaseSelector(props: CustomPhoneCaseSelectorProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const supabase = createClient();
-
   const groupedPhoneCases = props.phoneCases.reduce(
     (acc, phoneCase) => {
       if (!acc[phoneCase.brand]) acc[phoneCase.brand] = [];
@@ -102,11 +100,9 @@ export function CustomPhoneCaseSelector(props: CustomPhoneCaseSelectorProps) {
     setIsLoading(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: session } = await authClient.getSession();
 
-      if (!user) {
+      if (!session?.user) {
         localStorage.setItem("backTo", `/phonecase/custom`);
         router.push(`/auth/login`);
         return;
@@ -128,21 +124,21 @@ export function CustomPhoneCaseSelector(props: CustomPhoneCaseSelectorProps) {
         // آپلود تصویر و ایجاد محصول جدید
         const result = await uploadAndCreateProduct(
           props.image_url,
-          user.id,
-          supabase,
+          session.user.id,
         );
         productIdToUse = result.product_id;
       }
 
       // اضافه کردن به سبد خرید
-      const { error } = await supabase.from("cart_items").insert({
-        user_id: user.id,
-        product_id: productIdToUse,
-        phone_case_id: selectedPhoneCaseId,
-        quantity: 1,
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: productIdToUse,
+          phoneCaseId: selectedPhoneCaseId,
+        }),
       });
-
-      if (error) throw error;
+      if (!res.ok) throw new Error("Failed to add to cart");
 
       router.push("/cart");
       toast({
@@ -267,11 +263,10 @@ export function CustomPhoneCaseSelector(props: CustomPhoneCaseSelectorProps) {
   );
 }
 
-// تابع کمکی برای آپلود و ایجاد محصول
+// Upload image and create product via API routes
 export const uploadAndCreateProduct = async (
   image_url: string,
   user_id: string,
-  supabase: any,
 ) => {
   let finalImage = "";
 
@@ -280,39 +275,34 @@ export const uploadAndCreateProduct = async (
   }
 
   try {
-    // آپلود تصویر
+    // آپلود تصویر via API route
     const blob = await fetch(image_url).then((r) => r.blob());
-    const fileName = `phonecase-${Date.now()}-${user_id}.png`;
+    const formData = new FormData();
+    formData.append("file", blob, "phonecase.png");
+    formData.append("type", "phonecase");
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("custom-phonecase")
-      .upload(fileName, blob, {
-        contentType: blob.type || "image/png",
-        upsert: false,
-      });
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    finalImage = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${uploadData.fullPath}`;
+    const uploadRes = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+    if (!uploadRes.ok) throw new Error("Upload failed");
+    const { url } = await uploadRes.json();
+    finalImage = url;
 
     // ایجاد محصول جدید و دریافت ID
-    const { data: productData, error: addCustomPhonecaseError } = await supabase
-      .from("products")
-      .insert({
+    const productRes = await fetch("/api/admin/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         image_url: finalImage,
         name: "قاب موبایل کاستوم",
         type: "phonecase",
         designer: user_id,
         feed: false,
-      })
-      .select("id")
-      .single();
-
-    if (addCustomPhonecaseError) {
-      throw addCustomPhonecaseError;
-    }
+      }),
+    });
+    if (!productRes.ok) throw new Error("Failed to create product");
+    const productData = await productRes.json();
 
     return { success: true, product_id: productData.id, image_url: finalImage };
   } catch (error) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import PhonecaseCard from "@/components/phonecaseCard";
 import { useInView } from "react-intersection-observer";
 import PhonecaseCardSkeleton from "./phonecaseCardSkeleton";
@@ -23,8 +23,6 @@ export default function PhonecaseGrid({
   pageSize = 8,
   infinite = true,
 }: ProductsGridProps) {
-  const supabase = createClient();
-
   const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,11 +37,9 @@ export default function PhonecaseGrid({
 
   useEffect(() => {
     async function init() {
-      const { data } = await supabase.auth.getUser();
-
+      const { data: session } = await authClient.getSession();
       const admin =
-        data.user?.phone === process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER;
-
+        (session?.user as Record<string, unknown>)?.phoneNumber === process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER;
       setIsAdmin(admin ?? false);
     }
 
@@ -59,35 +55,27 @@ export default function PhonecaseGrid({
     const from = page * pageSize;
     const to = from + pageSize - 1;
 
-    let query = supabase
-      .from("products")
-      .select("*")
-      .eq("type", "phonecase")
-      .eq("feed", true)
-      .order("pin", { ascending: false })
-      .order("created_at", { ascending: false })
-      .range(from, to);
-      
-    const { data, error } = await query;
+    try {
+      const res = await fetch(`/api/products?type=phonecase&offset=${from}&limit=${pageSize}&feed=true`);
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
 
-    if (error) {
+      if (!data || data.length < pageSize) {
+        setHasMore(false);
+      }
+
+      if (data && data.length > 0) {
+        setProducts((prev) => [...prev, ...data]);
+        setPage((prev) => prev + 1);
+      }
+    } catch (error) {
       console.error(error);
+    } finally {
       loadingRef.current = false;
       setIsLoading(false);
-      return;
     }
 
-    if (!data || data.length < pageSize) {
-      setHasMore(false);
-    }
 
-    if (data && data.length > 0) {
-      setProducts((prev) => [...prev, ...data]);
-      setPage((prev) => prev + 1);
-    }
-
-    loadingRef.current = false;
-    setIsLoading(false);
   }, [page, pageSize, hasMore, isAdmin]);
 
   useEffect(() => {

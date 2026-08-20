@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { createClient } from "@/lib/supabase/client";
 import { Textarea } from "./ui/textarea";
 import { z } from "zod";
 import {
@@ -153,7 +152,6 @@ export function CheckoutForm({
   controlsRef,
   onUiStateChange,
 }: CheckoutFormProps) {
-  const supabase = createClient();
   const { toast } = useToast();
   const formId = useId();
 
@@ -314,109 +312,30 @@ export function CheckoutForm({
     setDiscountLoading(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+      const response = await fetch("/api/discount/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: discountCode.trim(), total }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
         toast({
-          title: "لطفا ابتدا وارد شوید",
+          title: data.error || "کد تخفیف معتبر نیست",
           variant: "destructive",
         });
         return;
-      }
-
-      const { data: discount, error } = await supabase
-        .from("discounts")
-        .select("*")
-        .eq("code", discountCode.trim())
-        .eq("is_active", true)
-        .single();
-
-      if (error || !discount) {
-        toast({
-          title: "کد تخفیف معتبر نیست",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const now = new Date();
-
-      if (
-        (discount.starts_at && new Date(discount.starts_at) > now) ||
-        (discount.expires_at && new Date(discount.expires_at) < now)
-      ) {
-        toast({
-          title: "کد تخفیف دیگه اعتبار نداره!",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (discount.min_order_amount && total < discount.min_order_amount) {
-        toast({
-          title: `حداقل مبلغ سفارش برای این کد ${formatNumber(discount.min_order_amount)} تومان است`,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (discount.usage_limit) {
-        const { count } = await supabase
-          .from("discount_usages")
-          .select("*", { count: "exact", head: true })
-          .eq("discount_id", discount.id);
-
-        if ((count || 0) >= discount.usage_limit) {
-          toast({
-            title: "کد تخفیف دیگه اعتبار نداره!",
-            variant: "destructive",
-          });
-          return;
-        }
-      }
-
-      if (discount.usage_per_user) {
-        const { count } = await supabase
-          .from("discount_usages")
-          .select("*", { count: "exact", head: true })
-          .eq("discount_id", discount.id)
-          .eq("user_id", user.id);
-
-        if ((count || 0) >= discount.usage_per_user) {
-          toast({
-            title: "قبلا از این کد استفاده کردی",
-            variant: "destructive",
-          });
-          return;
-        }
-      }
-
-      let discountAmount = 0;
-      let freeShipping = false;
-
-      if (discount.type === "percentage") {
-        discountAmount = Math.floor((total * discount.value) / 100);
-        if (discount.max_discount_amount) {
-          discountAmount = Math.min(
-            discountAmount,
-            discount.max_discount_amount,
-          );
-        }
-      } else if (discount.type === "fixed") {
-        discountAmount = Math.min(discount.value, total);
-      } else if (discount.type === "free_shipping") {
-        freeShipping = true;
       }
 
       const newDiscount: AppliedDiscount = {
-        discountId: discount.id,
-        discountAmount,
-        freeShipping,
+        discountId: data.discountId,
+        discountAmount: data.discountAmount,
+        freeShipping: data.freeShipping,
       };
 
       setAppliedDiscount(newDiscount);
-      onDiscountChange({ discountAmount, freeShipping });
+      onDiscountChange({ discountAmount: data.discountAmount, freeShipping: data.freeShipping });
 
       toast({
         title: "کد تخفیف اعمال شد",
@@ -444,159 +363,29 @@ export function CheckoutForm({
     try {
       const validatedData = parseCheckoutForm(formData);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      const { data: cartItems, error: cartError } = await supabase
-        .from("cart_items")
-        .select(
-          `
-          quantity,
-          products!inner (
-            id,
-            name,
-            type
-          ),
-          phone_cases (
-            id,
-            brand,
-            model,
-            price
-          ),
-          posters (
-            id,
-            attribute,
-            price
-          )
-        `,
-        )
-        .eq("user_id", user.id);
-
-      if (cartError) {
-        console.error("Cart fetch error:", cartError);
-        throw new Error("خطا در دریافت سبد خرید");
-      }
-
-      if (!cartItems || cartItems.length === 0) {
-        throw new Error("سبد خرید خالی است");
-      }
-
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          user_id: user.id,
-          total_amount: finalTotal,
-          discount_id: appliedDiscount?.discountId || null,
-          discount_amount: appliedDiscount?.discountAmount || 0,
-          free_shipping: appliedDiscount?.freeShipping || false,
-          status: "pending",
-          receiver_name: validatedData.displayName,
-          shipping_address: validatedData.address,
-          shipping_city: validatedData.city,
-          shipping_postal_code: validatedData.postalCode,
-          phone_number: validatedData.phoneNumber,
-          telegram: validatedData.telegram || null,
-        })
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error("Order creation error:", orderError);
-        throw orderError;
-      }
-
-      const orderItems = cartItems.map((item: any) => {
-        const product = Array.isArray(item.products)
-          ? item.products[0]
-          : item.products;
-        const phoneCase = Array.isArray(item.phone_cases)
-          ? item.phone_cases[0]
-          : item.phone_cases;
-        const poster = Array.isArray(item.posters)
-          ? item.posters[0]
-          : item.posters;
-
-        const baseItem = {
-          order_id: order.id,
-          product_id: product.id,
-          product_name: product.name,
-          quantity: item.quantity,
-        };
-
-        if (product.type === "phonecase") {
-          if (!phoneCase) {
-            throw new Error(`اطلاعات قاب موبایل "${product.name}" ناقص است`);
-          }
-          return {
-            ...baseItem,
-            product_price: phoneCase.price,
-            phone_case_id: phoneCase.id,
-            phone_brand: phoneCase.brand,
-            phone_model: phoneCase.model,
-            poster_atr: null,
-          };
-        }
-
-        if (product.type === "poster") {
-          if (!poster) {
-            throw new Error(`اطلاعات پوستر "${product.name}" ناقص است`);
-          }
-          return {
-            ...baseItem,
-            product_price: poster.price,
-            phone_case_id: null,
-            phone_brand: null,
-            phone_model: null,
-            poster_atr: poster.attribute,
-          };
-        }
-
-        throw new Error(`نوع محصول "${product.name}" نامعتبر است`);
-      });
-
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .insert(orderItems);
-
-      if (itemsError) {
-        console.error("Order items error:", itemsError);
-        throw itemsError;
-      }
-
-      await supabase
-        .from("profiles")
-        .update({
-          display_name: validatedData.displayName,
-          phone_number: validatedData.phoneNumber,
-          address: validatedData.address,
-          city: validatedData.city,
-          postal_code: validatedData.postalCode,
-          telegram: validatedData.telegram || null,
-        })
-        .eq("id", user.id);
-
-      const response = await fetch("/api/payment/request", {
+      const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          orderId: order.id,
-          amount: finalTotal,
+          displayName: validatedData.displayName,
+          phoneNumber: validatedData.phoneNumber,
+          address: validatedData.address,
+          city: validatedData.city,
+          postalCode: validatedData.postalCode,
+          telegram: validatedData.telegram || "",
+          discountCode: appliedDiscount ? discountCode : undefined,
+          total,
         }),
       });
 
-      const paymentData = await response.json();
+      const data = await response.json();
 
-      if (paymentData.success && paymentData.trackId) {
-        await supabase
-          .from("orders")
-          .update({ payment_reference: paymentData.trackId })
-          .eq("id", order.id);
+      if (!response.ok) {
+        throw new Error(data.error || "مشکلی در ثبت سفارش پیش آمد");
+      }
 
-        window.location.href =
-          paymentData.paymentStartUrl ||
-          `https://gateway.zibal.ir/start/${paymentData.trackId}`;
+      if (data.success && data.paymentStartUrl) {
+        window.location.href = data.paymentStartUrl;
       } else {
         throw new Error("خطا در ایجاد درگاه پرداخت");
       }

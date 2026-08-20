@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -40,7 +40,6 @@ export default function SignupPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
@@ -60,15 +59,16 @@ export default function SignupPage() {
     const internationalPhone = `+98${cleanedPhone.slice(1)}`;
 
     try {
-      const { error } = await supabase.auth.signUp({
-        phone: internationalPhone,
+      // Better Auth's phoneNumber plugin has NO sign-up endpoint.
+      // We use signUp.email with a synthetic email and pass phoneNumber
+      // as an additional field. The phone-number plugin adds it to the user.
+      const syntheticEmail = `${cleanedPhone}@collectina.ir`;
+      const { error } = await authClient.signUp.email({
+        email: syntheticEmail,
         password,
-        options: {
-          data: {
-            display_name: displayName,
-          },
-        },
-      });
+        name: displayName,
+        phoneNumber: internationalPhone,
+      } as Parameters<typeof authClient.signUp.email>[0] & { phoneNumber?: string });
       if (error) throw error;
 
       const backTo = localStorage.getItem("backTo")
@@ -80,7 +80,7 @@ export default function SignupPage() {
       if (err instanceof Error) {
         const englishMessage = err.message.toLowerCase();
 
-        // 🗺️ Map Supabase error messages to Persian
+        // Map auth error messages to Persian
         const errorMap: Record<string, string> = {
           "user already registered": "کاربری با این شماره از قبل وجود داره",
           "invalid phone number": "شماره تلفن وارد شده معتبر نیست",

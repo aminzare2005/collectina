@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { CartItem, CartItemSkeleton } from "@/components/cart-item";
 import {
   CheckoutForm,
@@ -54,7 +54,6 @@ const formatNumber = (n: number): string =>
 // ===========================
 
 export default function CartCheckoutPage() {
-  const supabase = createClient();
   const checkoutRef = useRef<HTMLDivElement>(null);
   const stickySummaryRef = useRef<HTMLDivElement>(null);
   const checkoutControlsRef = useRef<CheckoutFormControls | null>(null);
@@ -79,98 +78,58 @@ export default function CartCheckoutPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: session } = await authClient.getSession();
 
-        if (!user) {
+        if (!session?.user) {
           setIsAuthenticated(false);
           return;
         }
 
         setIsAuthenticated(true);
 
-        const [
-          { data: cart, error: cartError },
-          { data: profile, error: profileError },
-          { data: settings, error: settingsError },
-        ] = await Promise.all([
-          supabase
-            .from("cart_items")
-            .select(
-              `
-              id,
-              quantity,
-              products!inner (
-                id,
-                name,
-                image_url,
-                type
-              ),
-              phone_cases (
-                model,
-                price,
-                available
-              ),
-              posters (
-                attribute,
-                price,
-                available
-              )
-            `,
-            )
-            .eq("user_id", user.id),
-
-          supabase.from("profiles").select("*").eq("id", user.id).single(),
-
-          supabase.from("settings").select("post_price").single(),
+        const [cartRes, profileRes, settingsRes] = await Promise.all([
+          fetch("/api/cart"),
+          fetch("/api/profile"),
+          fetch("/api/settings"),
         ]);
 
-        if (cartError) {
-          console.error("Cart fetch error:", cartError);
-          throw new Error("خطا در دریافت سبد خرید");
-        }
-        if (profileError) console.error("Profile fetch error:", profileError);
-        if (settingsError)
-          console.error("Settings fetch error:", settingsError);
+        const cart = cartRes.ok ? await cartRes.json() : [];
+        const profile = profileRes.ok ? await profileRes.json() : null;
+        const settings = settingsRes.ok ? await settingsRes.json() : null;
 
         const normalized: NormalizedCartItem[] = (cart || []).map(
-          (item: any) => {
-            const product = Array.isArray(item.products)
-              ? item.products[0]
-              : item.products;
-            const phoneCase = Array.isArray(item.phone_cases)
-              ? item.phone_cases[0]
-              : item.phone_cases;
-            const poster = Array.isArray(item.posters)
-              ? item.posters[0]
-              : item.posters;
+          (item: Record<string, unknown>) => {
+            const product = item.product as Record<string, unknown> | null;
+            const phoneCase = item.phone_case as Record<string, unknown> | null;
+            const poster = item.poster as Record<string, unknown> | null;
+
+            if (!product) throw new Error("Cart item has no product");
 
             if (product.type === "phonecase" && phoneCase) {
               return {
-                id: item.id,
-                quantity: item.quantity,
-                productId: product.id,
-                name: product.name,
-                image_url: product.image_url,
+                id: item.id as string,
+                quantity: item.quantity as number,
+                productId: product.id as string,
+                name: product.name as string,
+                image_url: product.image_url as string,
                 type: "phonecase" as ProductType,
-                price: phoneCase.price,
-                available: phoneCase.available,
-                variantLabel: phoneCase.model,
+                price: phoneCase.price as number,
+                available: phoneCase.available as boolean,
+                variantLabel: phoneCase.model as string,
               };
             }
 
             if (product.type === "poster" && poster) {
               return {
-                id: item.id,
-                quantity: item.quantity,
-                productId: product.id,
-                name: product.name,
-                image_url: product.image_url,
+                id: item.id as string,
+                quantity: item.quantity as number,
+                productId: product.id as string,
+                name: product.name as string,
+                image_url: product.image_url as string,
                 type: "poster" as ProductType,
-                price: poster.price,
-                available: poster.available,
-                variantLabel: poster.attribute,
+                price: parseInt(poster.price as string, 10),
+                available: poster.available as boolean,
+                variantLabel: poster.attribute as string,
               };
             }
 

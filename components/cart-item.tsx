@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import PhonecaseCard from "./phonecaseCard";
@@ -42,7 +42,6 @@ export function CartItem({
 }: CartItemProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const supabase = createClient();
 
   const formattedPrice = useMemo(
     () => new Intl.NumberFormat("fa-IR").format(price),
@@ -57,12 +56,12 @@ export function CartItem({
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
-        .from("cart_items")
-        .update({ quantity: newQuantity })
-        .eq("id", id);
-
-      if (error) throw error;
+      const res = await fetch("/api/cart", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, quantity: newQuantity }),
+      });
+      if (!res.ok) throw new Error("Failed to update quantity");
     } catch {
       // Revert on error
       onQuantityChange(id, quantity);
@@ -84,12 +83,10 @@ export function CartItem({
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
-        .from("cart_items")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      const res = await fetch(`/api/cart?id=${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to remove item");
 
       window.dispatchEvent(new Event("cart-updated"));
       toast({

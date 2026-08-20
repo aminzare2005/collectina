@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import PosterCardSkeleton from "@/components/poster-card-skeleton";
@@ -85,7 +85,6 @@ const compressImage = async (
 
 export default function CustomPosterPageClient({ poster }: { poster: any[] }) {
   const { toast } = useToast();
-  const supabase = createClient();
   const [imageUrl, setImageUrl] = useState("");
   const [originalFile, setOriginalFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -237,11 +236,9 @@ export default function CustomPosterPageClient({ poster }: { poster: any[] }) {
 
     const attemptUpload = async (): Promise<any> => {
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const { data: session } = await authClient.getSession();
 
-        if (!user) {
+        if (!session?.user) {
           localStorage.setItem("backTo", `/poster/custom`);
           router.push(`/auth/login`);
           return;
@@ -254,9 +251,8 @@ export default function CustomPosterPageClient({ poster }: { poster: any[] }) {
         // استفاده از فایل به جای base64
         const result = await uploadAndCreateProductWithFile(
           originalFile,
-          user.id,
-          supabase,
-          (progress: any) => {
+          session.user.id,
+          (progress: number) => {
             setUploadProgress(progress);
           },
         );

@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -49,7 +49,6 @@ export default function LoginPage({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
@@ -63,8 +62,8 @@ export default function LoginPage({
     const internationalPhone = `+98${cleanedPhone.slice(1)}`;
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        phone: internationalPhone,
+      const { error } = await authClient.signIn.phoneNumber({
+        phoneNumber: internationalPhone,
         password,
       });
       if (error) throw error;
@@ -79,7 +78,7 @@ export default function LoginPage({
       if (err instanceof Error) {
         const englishMessage = err.message.toLowerCase();
 
-        // 🗺️ Map Supabase errors to Persian messages
+        // Map auth errors to Persian messages
         const errorMap: Record<string, string> = {
           "invalid login credentials": "شماره یا رمز عبور اشتباه است",
           "user not found": "کاربری با این مشخصات یافت نشد",
@@ -99,7 +98,7 @@ export default function LoginPage({
         }
 
         if (message === "خطایی رخ داده است") {
-          console.warn("Unhandled Supabase error:", err.message);
+          console.warn("Unhandled auth error:", err.message);
         }
       }
 

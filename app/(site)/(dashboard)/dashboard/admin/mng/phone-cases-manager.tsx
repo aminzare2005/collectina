@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,7 +31,6 @@ interface PhoneCase {
 }
 
 export default function PhoneCasesManager() {
-  const supabase = createClient();
   const [cases, setCases] = useState<PhoneCase[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -51,14 +50,9 @@ export default function PhoneCasesManager() {
   const fetchCases = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("phone_cases")
-        .select("*")
-        .order("available", { ascending: false })
-        .order("brand", { ascending: true })
-        .order("model");
-
-      if (error) throw error;
+      const res = await fetch("/api/admin/phone-cases");
+      if (!res.ok) throw new Error("Failed to fetch phone cases");
+      const data = await res.json();
       setCases(data || []);
     } catch (error) {
       console.error("[v0] Error fetching phone cases:", error);
@@ -80,15 +74,19 @@ export default function PhoneCasesManager() {
       };
 
       if (editingId) {
-        const { error } = await supabase
-          .from("phone_cases")
-          .update(payload)
-          .eq("id", editingId);
-
-        if (error) throw error;
+        const res = await fetch("/api/admin/phone-cases", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingId, ...payload }),
+        });
+        if (!res.ok) throw new Error("Failed to update phone case");
       } else {
-        const { error } = await supabase.from("phone_cases").insert([payload]);
-        if (error) throw error;
+        const res = await fetch("/api/admin/phone-cases", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create phone case");
       }
 
       setIsDialogOpen(false);
@@ -122,11 +120,10 @@ export default function PhoneCasesManager() {
     if (!window.confirm("آیا مطمئن هستید؟")) return;
 
     try {
-      const { error } = await supabase
-        .from("phone_cases")
-        .delete()
-        .eq("id", id);
-      if (error) throw error;
+      const res = await fetch(`/api/admin/phone-cases?id=${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete phone case");
       await fetchCases();
     } catch (error) {
       console.error("[v0] Error deleting phone case:", error);
@@ -174,14 +171,14 @@ export default function PhoneCasesManager() {
                   className="flex items-center cursor-pointer justify-between p-3 border rounded-lg bg-card"
                 >
                   <div className="flex-1 min-w-0 text-center -mt-1">
-                    <span className="font-mono text-xs opacity-70">{phoneCase.brand}</span>
+                    <span className="font-mono text-xs opacity-70">
+                      {phoneCase.brand}
+                    </span>
                     <p className="font-medium">{phoneCase.model}</p>
                     <div className="flex mt-2 md:flex-row flex-col justify-center items-center gap-2 text-xs text-muted-foreground">
                       <span
                         className={
-                          phoneCase.available
-                            ? "hidden"
-                            : "text-red-600"
+                          phoneCase.available ? "hidden" : "text-red-600"
                         }
                       >
                         {phoneCase.available ? "موجود" : "ناموجود"}
@@ -218,7 +215,7 @@ export default function PhoneCasesManager() {
               <SelectContent dir="rtl">
                 <SelectItem value="Samsung">سامسونگ</SelectItem>
                 <SelectItem value="Xiaomi">شیاومی</SelectItem>
-                <SelectItem value="Huawei">شیاومی</SelectItem>
+                <SelectItem value="Huawei">هواوی</SelectItem>
                 <SelectItem value="iPhone">آیفون</SelectItem>
               </SelectContent>
             </Select>

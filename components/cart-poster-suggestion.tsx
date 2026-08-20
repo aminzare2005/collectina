@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+
 import PosterCard from "@/components/poster-card";
 import PosterCardSkeleton from "./poster-card-skeleton";
 
@@ -15,24 +15,19 @@ export default function CartPosterSuggestion() {
   const [posters, setPosters] = useState<Product[]>([]);
 
   useEffect(() => {
-    const supabase = createClient();
-
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("products")
-        .select("id, name, image_url")
-        .eq("type", "poster")
-        .eq("feed", true)
-        .order("pin", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(6);
-
-      if (data) {
-        setPosters(data);
+    const fetchPosters = async () => {
+      try {
+        const res = await fetch("/api/products?type=poster&offset=0&limit=6&feed=true");
+        if (res.ok) {
+          const data = await res.json();
+          setPosters(data);
+        }
+      } catch {
+        // silently fail
       }
     };
 
-    fetch();
+    fetchPosters();
   }, []);
 
   

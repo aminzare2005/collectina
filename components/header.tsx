@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { MENU_ITEMS } from "@/constants";
 import SwitchTheme from "./switch-theme";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import Image from "next/image";
 
 export default function Header() {
@@ -40,24 +40,24 @@ export default function Header() {
 
   useEffect(() => {
     let cancelled = false;
-    const supabase = createClient();
 
     const fetchCartCount = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        const { data: session } = await authClient.getSession();
 
-      if (!user) {
+        if (!session?.user) {
+          if (!cancelled) setCartCount(0);
+          return;
+        }
+
+        const res = await fetch("/api/cart/count");
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) setCartCount(data.count ?? 0);
+        }
+      } catch {
         if (!cancelled) setCartCount(0);
-        return;
       }
-
-      const { count } = await supabase
-        .from("cart_items")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
-
-      if (!cancelled) setCartCount(count ?? 0);
     };
 
     fetchCartCount();

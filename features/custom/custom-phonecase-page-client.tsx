@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import PhonecaseCardSkeleton from "@/components/phonecaseCardSkeleton";
@@ -28,7 +28,6 @@ export default function CustomPhoneCasePageClient({
   phoneCases: any[];
 }) {
   const { toast } = useToast();
-  const supabase = createClient();
   const [imageUrl, setImageUrl] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -161,17 +160,15 @@ export default function CustomPhoneCasePageClient({
     setIsAddingToProducts(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: session } = await authClient.getSession();
 
-      if (!user) {
+      if (!session?.user) {
         localStorage.setItem("backTo", `/phonecase/custom`);
         router.push(`/auth/login`);
         return;
       }
 
-      const result = await uploadAndCreateProduct(imageUrl, user.id, supabase);
+      const result = await uploadAndCreateProduct(imageUrl, session.user.id);
       setCreatedProductId(result.product_id);
 
       toast({

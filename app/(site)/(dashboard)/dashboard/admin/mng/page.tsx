@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ProductsManager from "./products-manager";
@@ -13,8 +13,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export default function AdminMngPage() {
-  const supabase = createClient();
-  const [user, setUser] = useState<{ phone?: string } | null>(null);
+  const [user, setUser] = useState<{ phoneNumber?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
     "products" | "phone-cases" | "posters" | "settings"
@@ -22,14 +21,12 @@ export default function AdminMngPage() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
+      const { data: session } = await authClient.getSession();
+      setUser(session?.user as { phoneNumber?: string } | null);
       setLoading(false);
     };
     checkUser();
-  }, [supabase.auth]);
+  }, []);
 
   if (loading) {
     return (
@@ -39,7 +36,7 @@ export default function AdminMngPage() {
     );
   }
 
-  if (!user || user.phone !== process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER) {
+  if (!user || user.phoneNumber !== process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER) {
     return notFound();
   }
 

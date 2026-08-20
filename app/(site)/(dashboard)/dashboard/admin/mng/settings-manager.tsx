@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,6 @@ type Settings = {
 };
 
 export default function SettingsManager() {
-  const supabase = createClient();
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
@@ -37,14 +36,9 @@ export default function SettingsManager() {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-
-      const { data, error } = await supabase
-        .from("settings")
-        .select("*")
-        .limit(1)
-        .single();
-
-      if (error && error.code !== "PGRST116") throw error;
+      const res = await fetch("/api/admin/settings");
+      if (!res.ok) throw new Error("Failed to fetch settings");
+      const data = await res.json();
 
       if (data) {
         setSettingsId(data.id);
@@ -73,24 +67,13 @@ export default function SettingsManager() {
         show_poster: formData.show_poster,
       };
 
-      if (settingsId) {
-        const { error } = await supabase
-          .from("settings")
-          .update(payload)
-          .eq("id", settingsId);
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase
-          .from("settings")
-          .insert(payload)
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        setSettingsId(data.id);
-      }
+      if (!res.ok) throw new Error("Failed to save settings");
 
       toast({
         title: "ذخیره شد",

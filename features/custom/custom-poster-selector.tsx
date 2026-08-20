@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -32,82 +32,50 @@ type CustomPosterSelectorProps = {
 
 // custom-poster-selector.tsx - بخش آپلود
 
-import { SupabaseClient } from "@supabase/supabase-js";
-
 /**
- * آپلود فایل به جای base64 - بهینه‌تر و سریع‌تر
+ * آپلود فایل از طریق /api/upload — storage provider is pluggable (S3/MinIO/Supabase).
  */
 export async function uploadAndCreateProductWithFile(
   file: File,
   userId: string,
-  supabase: SupabaseClient,
   onProgress?: (progress: number) => void
 ): Promise<{ product_id: string; image_url: string }> {
   try {
-    // 1. ساخت نام یونیک برای فایل
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(7);
-    const fileExtension = file.name.split(".").pop() || "jpg";
-    const fileName = `custom-poster-${userId}-${timestamp}-${randomString}.${fileExtension}`;
+    console.log(`📤 شروع آپلود فایل: ${file.name} (${(file.size / 1024).toFixed(2)}KB)`);
 
-    console.log(`📤 شروع آپلود فایل: ${fileName} (${(file.size / 1024).toFixed(2)}KB)`);
-
-    // شبیه‌سازی progress برای مراحل مختلف
     if (onProgress) onProgress(10);
 
-    // 2. آپلود به Supabase Storage با timeout مناسب
-    const uploadStartTime = Date.now();
-    
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("custom-poster") // نام bucket رو با bucket واقعیت عوض کن
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: file.type,
-      });
+    // Upload via API route
+    const formData = new FormData();
+    formData.append("file", file, file.name);
+    formData.append("type", "poster");
 
-    const uploadTime = ((Date.now() - uploadStartTime) / 1000).toFixed(2);
+    const uploadRes = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-    if (uploadError) {
-      console.error("❌ خطا در آپلود:", uploadError);
-      throw new Error(`Upload failed: ${uploadError.message}`);
-    }
+    if (!uploadRes.ok) throw new Error("Upload failed");
+    const { url: publicUrl } = await uploadRes.json();
 
-    console.log(`✅ آپلود موفق در ${uploadTime}s:`, uploadData.path);
+    console.log(`✅ آپلود موفق:`, publicUrl);
     if (onProgress) onProgress(60);
 
-    // 3. گرفتن URL عمومی فایل
-    const { data: urlData } = supabase.storage
-      .from("custom-poster")
-      .getPublicUrl(uploadData.path);
-
-    const publicUrl = urlData.publicUrl;
-    console.log(`🔗 Public URL:`, publicUrl);
-    if (onProgress) onProgress(80);
-
-    // 4. ذخیره در دیتابیس
-    const { data: productData, error: dbError } = await supabase
-      .from("products") // نام table رو با table واقعیت عوض کن
-      .insert({
+    // Create product in database
+    const productRes = await fetch("/api/admin/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         image_url: publicUrl,
         name: "پوستر کاستوم",
         type: "poster",
         designer: userId,
         feed: false,
-      })
-      .select()
-      .single();
+      }),
+    });
 
-    if (dbError) {
-      console.error("❌ خطا در ذخیره دیتابیس:", dbError);
-      
-      // اگر دیتابیس خطا داد، فایل رو پاک کن
-      await supabase.storage
-        .from("custom-poster")
-        .remove([uploadData.path]);
-      
-      throw new Error(`Database error: ${dbError.message}`);
-    }
+    if (!productRes.ok) throw new Error("Failed to create product");
+    const productData = await productRes.json();
 
     console.log(`✅ محصول ساخته شد:`, productData.id);
     if (onProgress) onProgress(100);
@@ -116,54 +84,25 @@ export async function uploadAndCreateProductWithFile(
       product_id: productData.id,
       image_url: publicUrl,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("💥 خطای کلی در آپلود:", error);
-    
-    // اطلاعات دیباگ بیشتر
-    if (error.message) {
-      console.error("Message:", error.message);
-    }
-    if (error.code) {
-      console.error("Code:", error.code);
-    }
-    
     throw error;
   }
 }
 
 /**
- * تابع قدیمی با base64 (برای compatibility)
- * توصیه: از uploadAndCreateProductWithFile استفاده کنید
+ * تابع base64 wrapper — converts base64 to File, then delegates.
  */
 export async function uploadAndCreateProduct(
   base64Image: string,
-  userId: string,
-  supabase: SupabaseClient
+  userId: string
 ): Promise<{ product_id: string; image_url: string }> {
-  // تبدیل base64 به File
   const blob = await (await fetch(base64Image)).blob();
-  const file = new File([blob], "custom-poster.jpg", { type: "image/jpeg" });
+  const file = new File([blob], "poster.jpg", { type: "image/jpeg" });
   
-  return uploadAndCreateProductWithFile(file, userId, supabase);
+  return uploadAndCreateProductWithFile(file, userId);
 }
 
-
-// finalImage = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${uploadData.fullPath}`;
-
-//     // ایجاد محصول جدید و دریافت ID
-//     const { data: productData, error: addCustomPosterError } = await supabase
-//       .from("products")
-//       .insert({
-//         image_url: finalImage,
-//         name: "پوستر کاستوم",
-//         type: "poster",
-//         designer: user_id,
-//         feed: false,
-//       })
-//       .select("id")
-//       .single();
-
-// Export کردن هر دوی توابع برای سازگاری
 export { uploadAndCreateProductWithFile as uploadFile };
 
 export function CustomPosterSelector(props: CustomPosterSelectorProps) {
@@ -171,8 +110,6 @@ export function CustomPosterSelector(props: CustomPosterSelectorProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const supabase = createClient();
-
   const selectedPosterData = props.posters.find(
     (pc) => pc.id === selectedPosterId
   );
@@ -206,11 +143,9 @@ export function CustomPosterSelector(props: CustomPosterSelectorProps) {
     setIsLoading(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: session } = await authClient.getSession();
 
-      if (!user) {
+      if (!session?.user) {
         localStorage.setItem("backTo", `/poster/custom`)
         router.push(`/auth/login`);
         return;
@@ -232,21 +167,21 @@ export function CustomPosterSelector(props: CustomPosterSelectorProps) {
         // آپلود تصویر و ایجاد محصول جدید
         const result = await uploadAndCreateProduct(
           props.image_url,
-          user.id,
-          supabase
+          session.user.id,
         );
         productIdToUse = result.product_id;
       }
 
       // اضافه کردن به سبد خرید
-      const { error } = await supabase.from("cart_items").insert({
-        user_id: user.id,
-        product_id: productIdToUse,
-        poster_id: selectedPosterId,
-        quantity: 1,
+      const res = await fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: productIdToUse,
+          posterId: selectedPosterId,
+        }),
       });
-
-      if (error) throw error;
+      if (!res.ok) throw new Error("Failed to add to cart");
 
       router.push("/cart");
       toast({

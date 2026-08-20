@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -41,7 +41,6 @@ interface Product {
 }
 
 export default function ProductsManager() {
-  const supabase = createClient();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -63,13 +62,9 @@ export default function ProductsManager() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("pin", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch("/api/admin/products");
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
       setProducts(data || []);
     } catch (error) {
       console.error("[v0] Error fetching products:", error);
@@ -83,15 +78,19 @@ export default function ProductsManager() {
 
     try {
       if (editingId) {
-        const { error } = await supabase
-          .from("products")
-          .update(formData)
-          .eq("id", editingId);
-
-        if (error) throw error;
+        const res = await fetch("/api/admin/products", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingId, ...formData }),
+        });
+        if (!res.ok) throw new Error("Failed to update product");
       } else {
-        const { error } = await supabase.from("products").insert([formData]);
-        if (error) throw error;
+        const res = await fetch("/api/admin/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        if (!res.ok) throw new Error("Failed to create product");
       }
 
       setIsDialogOpen(false);
@@ -125,11 +124,12 @@ export default function ProductsManager() {
     if (!window.confirm("آیا مطمئن هستید؟")) return;
 
     try {
-      const { error } = await supabase.from("products").delete().eq("id", id);
-      if (error) {
+      const res = await fetch(`/api/admin/products?id=${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
         toast({
           title: "حذف نشد!",
-          description: error?.message,
           variant: "destructive",
         });
       } else {

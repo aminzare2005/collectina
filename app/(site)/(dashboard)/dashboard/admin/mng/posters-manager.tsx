@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -24,7 +24,6 @@ interface Poster {
 }
 
 export default function PostersManager() {
-  const supabase = createClient();
   const [posters, setPosters] = useState<Poster[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -45,12 +44,9 @@ export default function PostersManager() {
   const fetchPosters = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("posters")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch("/api/admin/posters");
+      if (!res.ok) throw new Error("Failed to fetch posters");
+      const data = await res.json();
       setPosters(data || []);
     } catch (error) {
       console.error("[v0] Error fetching posters:", error);
@@ -71,15 +67,19 @@ export default function PostersManager() {
       };
 
       if (editingId) {
-        const { error } = await supabase
-          .from("posters")
-          .update(payload)
-          .eq("id", editingId);
-
-        if (error) throw error;
+        const res = await fetch("/api/admin/posters", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingId, ...payload }),
+        });
+        if (!res.ok) throw new Error("Failed to update poster");
       } else {
-        const { error } = await supabase.from("posters").insert([payload]);
-        if (error) throw error;
+        const res = await fetch("/api/admin/posters", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to create poster");
       }
 
       setIsDialogOpen(false);
@@ -111,11 +111,12 @@ export default function PostersManager() {
     if (!window.confirm("آیا مطمئن هستید؟")) return;
 
     try {
-      const { error } = await supabase.from("posters").delete().eq("id", id);
-      if (error) {
+      const res = await fetch(`/api/admin/posters?id=${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
         toast({
           title: "حذف نشد!",
-          description: error?.message,
         });
       }
       await fetchPosters();
