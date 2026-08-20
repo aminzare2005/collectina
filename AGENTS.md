@@ -22,7 +22,7 @@ Current version: 2.5.0 (package.json `version`; git tags mirror releases as `2.5
 | Language         | TypeScript (strict), path alias `@/*` → project root                                                         |
 | Styling          | Tailwind CSS v4 (`@import "tailwindcss"` in `app/globals.css`), `tw-animate-css`, shadcn/ui (new-york style) |
 | UI primitives    | Radix UI via `components/ui/*` (shadcn), `lucide-react` icons                                                |
-| Backend/DB/Auth  | Supabase (Postgres + Auth), `@supabase/ssr`                                                                  |
+| Backend/DB/Auth  | PostgreSQL (via `postgres`/postgres.js), Better Auth (phone+password) |
 | Payments         | Zibal (زیبال) Iranian gateway, reached **through a PHP proxy** (see Payment section)                         |
 | Hosting          | Vercel (`.vercel/`) and/or Liara (`liara.json`)                                                              |
 | Animation        | framer-motion, embla-carousel, swiper                                                                        |
@@ -65,7 +65,17 @@ app/
     dashboard/mockup/page.tsx       # Exports product mockup images via html-to-image
   (auth)/auth/              # login + signup (phone + password, phone normalized to +98…)
   (status)/                 # order-success, order-failed, track/[track] (public order tracking)
-  api/payment/request|start|verify  # Payment flow routes (see Payment section)
+  api/
+    auth/[...all]/        # Better Auth API route handler
+    cart/                  # Cart CRUD + count
+    checkout/              # Server-side checkout flow (orders, payment)
+    discount/validate/     # Discount code validation
+    products/              # Product listing + detail
+    profile/               # User profile CRUD
+    settings/              # Public settings
+    upload/                # Image upload via StorageProvider
+    admin/                 # Admin CRUD (products, phone-cases, posters, settings)
+    payment/request|start|verify  # Payment flow routes (see Payment section)
 components/
   ui/                       # shadcn/ui primitives (button, dialog, select, toast, …)
   product/                  # product-detail-shell, product-purchase-dock, product-visual-stage, …
@@ -78,12 +88,17 @@ components/
   order-progress.tsx, track-page-client.tsx     # Order status timeline / tracking page
   admin-bar.tsx             # Floating admin shortcut (mockup export) on product pages
   top-banner.tsx, banner1.tsx, banner2.tsx, home-bridge.tsx, home-category-nav.tsx, …
-features/custom/            # Admin-only custom design upload flow (image → Supabase storage → product)
+features/custom/            # Admin-only custom design upload flow (image → storage → product)
   custom-phonecase-page-client.tsx, custom-phonecase-selector.tsx (exports uploadAndCreateProduct)
   custom-poster-page-client.tsx, custom-poster-selector.tsx
 lib/
-  supabase/{client,server,middleware}.ts  # Browser / server / proxy-session clients
-  types/database.ts         # TS interfaces: Order, Profile, Discount, Product, PhoneCase, Poster, CartItem, OrderItem, Settings
+  db/pool.ts                # postgres.js connection pool (DATABASE_URL)
+  auth.ts                   # Better Auth server config (phone+password, postgresql adapter)
+  auth-client.ts            # Better Auth client (browser-side, signIn.phoneNumber, useSession)
+  auth-helpers.ts           # getCurrentUser(), isAdmin(), requireAuth() for server code
+  repositories/             # Typed SQL query modules (Product, Variant, Cart, Order, User, Discount, Settings)
+  storage/                  # StorageProvider interface + S3StorageProvider (+ optional SupabaseStorageProvider fallback)
+  types/database.ts         # TS interfaces: all tables + composite types (strict, matches schema.sql)
   shipping.ts               # Shipping groups: poster + phonecase = 2 shipments, fee per group
   zibal-proxy.ts            # Calls the PHP proxy (ZIBAL_PROXY_URL + X-Proxy-Secret header)
   utils.ts                  # cn() helper
@@ -91,23 +106,24 @@ constants/index.ts          # MENU_ITEMS nav list
 helpers/should-i-render.ts  # Reads settings (show_poster, show_phonecase, top_banner)
 hooks/                      # use-logout, use-phone-formatter, use-resize-observer-height, use-toast
 server/payment-proxy/       # PHP files to deploy to cPanel (see docs/zibal-proxy-setup.md)
-scripts/schema.sql          # SINGLE SOURCE OF TRUTH — full DB schema, runnable anywhere (see Database section)
+scripts/schema-complete.sql   # SINGLE FILE — run this on fresh PostgreSQL (creates everything)
 docs/zibal-proxy-setup.md   # Full Zibal proxy architecture doc (Persian)
 proxy.ts                    # Next.js proxy (middleware equivalent) — session refresh + route guard
 ```
 
 ## Auth & Route Protection
 
-- Auth is **phone + password** via Supabase Auth. Login/signup convert `0912…` → `+98912…`.
-- A DB trigger (`handle_new_user`) auto-creates a `profiles` row on signup.
-- `proxy.ts` (root; Next 16 renamed `middleware.ts` → `proxy.ts`) refreshes the Supabase session on
+- Auth is **phone + password** via Better Auth (`lib/auth.ts`). Login/signup convert `0912…` → `+98912…`.
+- Better Auth manages its own `user`, `session`, `account`, and `verification` tables.
+- `proxy.ts` (root; Next 16 renamed `middleware.ts` → `proxy.ts`) refreshes the session on
   every request and enforces:
   - `/dashboard*` and `/checkout*` → redirect to `/auth/login` if logged out
   - `/auth/login` and `/auth/signup` → redirect to `/` if logged in
 - **Admin access** is gated everywhere by `user.phone === process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER`
   (dashboard admin page, admin mng, custom pages, AdminBar, admin-only grid flags). There is no roles table.
-- Client components use `createClient()` from `@/lib/supabase/client`; server components use
-  `createClient()` from `@/lib/supabase/server` (awaited: `const supabase = await createClient()`).
+- Server components use `getCurrentUser()` from `@/lib/auth-helpers`; client components use
+  `useSession()` from `@/lib/auth-client`.
+
 
 ## Payment Flow (Zibal via PHP proxy)
 
@@ -135,10 +151,21 @@ Note: the Zibal **trackId** is stored in `orders.payment_reference` (written by 
 written by the app** — it's populated outside the app (DB trigger/manual; unverified). Postal
 tracking (`track_post_id`) is set manually by the admin.
 
-## Database (Supabase Postgres)
+## Database (PostgreSQL)
 
-**`scripts/schema.sql` is the single source of truth for the database** — a self-contained
-file you can run anywhere (Supabase SQL editor, psql, fresh project) to recreate the whole DB.
+**Setup on fresh PostgreSQL:**
+```bash
+# One command — creates everything (auth tables + business tables + indexes)
+psql $DATABASE_URL -f scripts/schema-complete.sql
+```
+
+**`scripts/schema-complete.sql`** is the single file — creates ALL tables:
+- Better Auth tables (`"user"`, `session`, `account`, `verification`)
+- Business tables (`profiles`, `products`, `orders`, `cart_items`, etc.)
+- Functions (`generate_track_id`, `handle_new_user` trigger)
+- Indexes
+
+No RLS policies (auth is handled at the app layer via Better Auth + API routes).
 Columns, exact types (incl. the `discount_type` enum), NOT NULL flags, and defaults were
 verified against production on 2026-08-18 via the **service_role** key (PostgREST OpenAPI spec
 
@@ -167,13 +194,13 @@ Known quirks (all documented in schema.sql):
   writes it, and there are NO triggers in production** (verified via pg_trigger) and no
   sequence for it (only `settings_id_seq` exists). Production orders carry random 8-digit ids
   matching `generate_track_id()`'s output, so ids are produced by that function outside the
-  schema (manually or by deployed code). `scripts/schema.sql` adds
+  schema (manually or by deployed code). `scripts/schema-complete.sql` adds
   `default public.generate_track_id()` so a fresh DB works standalone.
 - `orders` and `order_items` SELECT policies are **public (`qual=true`)** — that's what powers
   the public `/track/{track_id}` page. **`settings` has RLS disabled** (anon can read AND
   write it). `discounts` has only a SELECT policy (active + date window); writes are
   service_role-only. `otps` has an `all everyone` policy. All reproduced faithfully in
-  schema.sql, with a SECURITY NOTES section at the bottom.
+  schema-complete.sql.
 - All money columns are `numeric` (never float8): `numeric(10,2)` for phone_cases.price /
   orders.total_amount / order_items.product_price; plain `numeric` for settings.post_price,
   discounts.\*, orders.discount_amount; **text** for posters.price.
@@ -198,8 +225,24 @@ product type, extend `SHIPPING_GROUP_BY_PRODUCT_TYPE` and `SHIPPING_GROUP_LABELS
 ## Environment Variables
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+# === New infrastructure (Phase 1+) ===
+DATABASE_URL=                  # PostgreSQL connection string (required)
+BETTER_AUTH_SECRET=            # 32+ char secret for session signing (required)
+BETTER_AUTH_URL=http://localhost:3000  # Base URL for Better Auth (required)
+
+# === S3-compatible storage (ArvanCloud / MinIO) ===
+S3_ENDPOINT=                   # e.g. https://s3.ir-thr-at1.arvancloud.ir
+S3_BUCKET=                     # bucket name (e.g. collectina-storage)
+S3_ACCESS_KEY=
+S3_SECRET_KEY=
+S3_REGION=default
+S3_PUBLIC_URL=                 # public CDN URL for serving images
+
+# === Optional: Supabase Storage fallback (remove after S3 is confirmed) ===
+NEXT_PUBLIC_SUPABASE_URL=      # only needed if S3 not configured yet
+NEXT_PUBLIC_SUPABASE_ANON_KEY= # only needed if S3 not configured yet
+
+# === Application (unchanged) ===
 NEXT_PUBLIC_APP_URL=https://collectina.ir
 ZIBAL_PROXY_URL=https://fetchme.ir/collectina
 ZIBAL_PROXY_SECRET=            # must match server/payment-proxy/config.php
@@ -219,8 +262,9 @@ NEXT_PUBLIC_ADMIN_PHONE_NUMBER=  # phone number (09…) whose user is the admin
   `quality={40|75}` explicitly and use small intrinsic sizes.
 - shadcn/ui components live in `components/ui/`; regenerate with `npx shadcn@latest add <name>`.
   `components.json` aliases: `@/components`, `@/lib`, `@/hooks`, `@/components/ui`.
-- Server components fetch data directly via `lib/supabase/server` `createClient()`; interactive
-  components are `"use client"` and use `lib/supabase/client`.
+- Server components use `getCurrentUser()` from `@/lib/auth-helpers` and repositories from
+  `@/lib/repositories/`. Client components use `useSession()` from `@/lib/auth-client`.
+  Interactive components POST to Route Handlers (not directly to the DB).
 - **Cart badge refresh** is driven by a custom browser event: code dispatches
   `window.dispatchEvent(new Event("cart-updated"))` after cart mutations; `header.tsx` listens.
 - localStorage keys in use: `backTo` (post-login redirect), `selectedBrand`, `selectedPhoneCaseId`,
@@ -228,8 +272,8 @@ NEXT_PUBLIC_ADMIN_PHONE_NUMBER=  # phone number (09…) whose user is the admin
 - `useToast` is a project hook (`hooks/use-toast.ts`) wrapping sonner — use it, not raw sonner.
 - Tailwind v4 syntax: CSS-first config, `@theme inline`, arbitrary utilities like `size-*`, and
   `!` suffix for important (e.g. `border-0!`, `bg-transparent!`). Dark variants use `dark:`.
-- The custom upload flow (`features/custom/`) uploads base64 images to Supabase Storage and creates
-  a `products` row (admin-only pages under `/phonecase/custom`, `/poster/custom`).
+- The custom upload flow (`features/custom/`) uploads images via `/api/upload` (which uses the
+  `StorageProvider` abstraction — S3 or Supabase Storage) and creates a `products` row.
 - Git commit style: conventional prefixes (`fix:`, `feat:`, `refactor:`, `style:`) + version tags.
   Files may use CRLF line endings — keep edits consistent per file.
 - `dashboard/mockup?image_url=…&id=…&type=…` exports product mockup PNGs (admin tool, reachable from AdminBar on product pages).
