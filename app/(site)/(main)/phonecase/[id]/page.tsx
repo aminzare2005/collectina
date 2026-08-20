@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { ProductRepository, VariantRepository } from "@/lib/repositories";
 import { PhoneCaseSelector } from "@/components/phone-case-selector";
 import { notFound } from "next/navigation";
 import PhonecaseCard from "@/components/phonecaseCard";
@@ -12,28 +12,17 @@ export default async function ProductPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const supabase = await createClient();
   const { id } = await params;
 
   const should_i_render = await ShouldIRender();
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("type", "phonecase")
-    .eq("id", id)
-    .single();
+  const product = await ProductRepository.getById(id, "phonecase");
 
   if (!product) {
     notFound();
   }
 
-  const { data: phoneCases } = await supabase
-    .from("phone_cases")
-    .select("*")
-    .order("available", { ascending: false })
-    .order("brand")
-    .order("model");
+  const phoneCases = await VariantRepository.getAllPhoneCases();
 
   return (
     <>

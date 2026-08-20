@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser, isAdmin } from "@/lib/auth-helpers";
+import { OrderRepository, ProductRepository } from "@/lib/repositories";
 import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,56 +16,21 @@ import RecentOrdersClient, {
 import Link from "next/link";
 
 export default async function AdminDashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
+  const admin = await isAdmin();
 
   if (!user) {
     redirect("/auth/login");
   }
 
-  if (user.phone !== process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER) {
+  if (!admin) {
     redirect(notFound());
   }
 
-  const { data: orders, error } = await supabase
-    .from("orders")
-    .select(
-      `
-      id,
-      created_at,
-      status,
-      track_id,
-      total_amount,
-      receiver_name,
-      phone_number,
-      shipping_city,
-      shipping_address,
-      shipping_postal_code,
-      note,
-      order_items (
-        id,
-        phone_model,
-        poster_atr,
-        product_name,
-        products (
-          image_url
-        )
-      )
-    `,
-    )
-    .order("created_at", { ascending: false });
-
-  const { data: products, error: productsError } = await supabase
-    .from("products")
-    .select("*");
-
-  if (error || productsError) {
-    console.error(error);
-  }
-
-  const totalProducts = products?.length;
+  const orders = await OrderRepository.getAllWithItems();
+  const products = await ProductRepository.getFeed("phonecase", 0, 10000, false);
+  const posterProducts = await ProductRepository.getFeed("poster", 0, 10000, false);
+  const totalProducts = products.length + posterProducts.length;
 
   const recentOrders = (orders ?? []) as unknown as AdminOrder[];
   const totalOrders = recentOrders.length;

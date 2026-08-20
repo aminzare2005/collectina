@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth-helpers";
+import { UserRepository } from "@/lib/repositories";
 import {
   HomeIcon,
   LucideSettings,
@@ -15,14 +16,15 @@ export default async function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/auth/login");
   }
+
+  // Fetch profile for display name
+  const profile = await UserRepository.getById(user.id);
+  const displayName = profile?.display_name || user.name || "کاربر";
 
   function formatPhoneNumber(phoneNumber: string): string {
     const cleaned = phoneNumber.replace(/\D/g, "");
@@ -51,10 +53,10 @@ export default async function DashboardLayout({
         </div>
         <div className="flex-1 space-y-0.5 min-w-0">
           <p className="font-semibold text-sm truncate">
-            {user?.user_metadata.display_name || "کاربر"}
+            {displayName}
           </p>
           <p className="text-xs text-foreground/60 truncate">
-            {formatPhoneNumber(user.phone || "")}
+            {formatPhoneNumber(user.phoneNumber || "")}
           </p>
         </div>
         <Link href={"/dashboard/me"}>

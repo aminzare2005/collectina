@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { SettingsRepository } from "@/lib/repositories";
 
 export type ShouldIRenderType = {
   show_poster: boolean;
@@ -7,20 +7,15 @@ export type ShouldIRenderType = {
 };
 
 export default async function ShouldIRender(): Promise<ShouldIRenderType> {
-  const supabase = await createClient();
+  const settings = await SettingsRepository.get();
 
-  const { data, error } = await supabase
-    .from("settings")
-    .select("show_poster, show_phonecase, top_banner")
-    .single();
-
-  if (error) {
+  if (!settings) {
     return { show_poster: false, show_phonecase: false, top_banner: "" };
   }
 
   return {
-    show_poster: data?.show_poster ?? false,
-    show_phonecase: data?.show_phonecase ?? false,
-    top_banner: (data?.top_banner ?? "").trim(),
+    show_poster: settings.show_poster,
+    show_phonecase: settings.show_phonecase,
+    top_banner: (settings.top_banner ?? "").trim(),
   };
 }

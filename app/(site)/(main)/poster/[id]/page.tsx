@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { ProductRepository, VariantRepository } from "@/lib/repositories";
 import { notFound } from "next/navigation";
 import AdminBar from "@/components/admin-bar";
 import PosterCard from "@/components/poster-card";
@@ -12,26 +12,17 @@ export default async function ProductPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const supabase = await createClient();
   const { id } = await params;
 
   const should_i_render = await ShouldIRender();
 
-  const { data: product } = await supabase
-    .from("products")
-    .select("*")
-    .eq("type", "poster")
-    .eq("id", id)
-    .single();
+  const product = await ProductRepository.getById(id, "poster");
 
   if (!product) {
     notFound();
   }
 
-  const { data: posters } = await supabase
-    .from("posters")
-    .select("*")
-    .order("attribute");
+  const posters = await VariantRepository.getAllPosters();
 
   return (
     <>

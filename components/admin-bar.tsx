@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "./ui/button";
 import { DownloadCloudIcon } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser, isAdmin } from "@/lib/auth-helpers";
 
 type Props = {
   id: string;
@@ -10,12 +10,10 @@ type Props = {
   product_type: "phonecase" | "poster"
 };
 async function AdminBar(props: Props) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
+  const admin = await isAdmin();
 
-  if (!user || user.phone !== process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER) {
+  if (!user || !admin) {
     return;
   }
 

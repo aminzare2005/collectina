@@ -1,5 +1,6 @@
 import React from "react";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser, isAdmin } from "@/lib/auth-helpers";
+import { OrderRepository } from "@/lib/repositories";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -35,20 +36,14 @@ type Order = {
 };
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
+  const admin = await isAdmin();
 
   if (!user) {
     redirect("/auth/login");
   }
 
-  const { data: recentOrders } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+  const recentOrders = await OrderRepository.getByUserId(user.id);
 
   const formatPrice = (v: number | null | undefined): string =>
     new Intl.NumberFormat("fa-IR").format(v ?? 0) + " تومان";
@@ -60,7 +55,7 @@ export default async function DashboardPage() {
   return (
     <>
       <div>
-        {user.phone === process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER && (
+        {admin && (
           <div className="grid grid-cols-1 mb-4">
             <Link href="/dashboard/admin">
               <StatCard

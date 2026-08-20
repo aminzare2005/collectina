@@ -1,34 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth-helpers";
+import { OrderRepository } from "@/lib/repositories";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Package, CreditCard, Clock, XCircleIcon } from "lucide-react";
 import { redirect } from "next/navigation";
-
-// ===========================
-// Types
-// ===========================
-
-interface Order {
-  id: string;
-  user_id: string;
-  total_amount: number;
-  status: string;
-  payment_reference: string | null;
-  shipping_address: string;
-  shipping_city: string;
-  shipping_postal_code: string;
-  phone_number: string;
-  created_at: string;
-  updated_at: string;
-  telegram: string | null;
-  receiver_name: string;
-  track_id: number;
-  track_post_id: string | null;
-  discount_id: string | null;
-  discount_amount: number;
-  free_shipping: boolean;
-}
+import type { Order } from "@/lib/types/database";
 
 // ===========================
 // Helper Functions
@@ -52,26 +29,18 @@ export default async function OrderFailedPage({
   // Await searchParams (Next.js 15+)
   const params = await searchParams;
   
-  const supabase = await createClient();
-
   // Check authentication
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/auth/login");
   }
 
   // Fetch order with proper typing
-  const { data: order, error } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("id", params.orderId)
-    .single<Order>();
+  const order = await OrderRepository.getById(params.orderId);
 
-  if (error || !order) {
-    console.error("Order fetch error:", error);
+  if (!order) {
+    console.error("Order not found:", params.orderId);
     redirect("/");
   }
 

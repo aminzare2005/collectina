@@ -2,21 +2,15 @@ import { LogoutButton } from "@/components/logout-button";
 import { ProfileForm } from "@/components/profile-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth-helpers";
+import { UserRepository } from "@/lib/repositories";
 
 export default async function MePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) {
     return;
   }
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const profile = await UserRepository.getById(user.id);
   return (
     <div className="flex flex-col gap-4">
       <ProfileForm profile={profile} />

@@ -1,28 +1,21 @@
 import CustomPhoneCasePageClient from "@/features/custom/custom-phonecase-page-client";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser, isAdmin } from "@/lib/auth-helpers";
+import { VariantRepository } from "@/lib/repositories";
 import { notFound, redirect } from "next/navigation";
 
 export default async function ProductPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
+  const admin = await isAdmin();
 
   if (!user) {
     redirect("/auth/login");
   }
 
-  if (user.phone !== process.env.NEXT_PUBLIC_ADMIN_PHONE_NUMBER) {
+  if (!admin) {
     redirect(notFound());
   }
 
-  const { data: phoneCases } = await supabase
-    .from("phone_cases")
-    .select("*")
-    .order("available", { ascending: false })
-    .order("brand")
-    .order("model");
+  const phoneCases = await VariantRepository.getAllPhoneCases();
 
-  return <CustomPhoneCasePageClient phoneCases={phoneCases || []} />;
+  return <CustomPhoneCasePageClient phoneCases={phoneCases} />;
 }

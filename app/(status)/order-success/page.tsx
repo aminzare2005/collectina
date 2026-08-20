@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth-helpers";
+import { OrderRepository } from "@/lib/repositories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -29,26 +30,18 @@ export default async function OrderSuccessPage({
   // Await searchParams (Next.js 15+)
   const params = await searchParams;
   
-  const supabase = await createClient();
-
   // Check authentication
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/auth/login");
   }
 
   // Fetch order with proper typing
-  const { data: order, error } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("id", params.orderId)
-    .single<Order>();
+  const order = await OrderRepository.getById(params.orderId);
 
-  if (error || !order) {
-    console.error("Order fetch error:", error);
+  if (!order) {
+    console.error("Order not found:", params.orderId);
     redirect("/");
   }
 
