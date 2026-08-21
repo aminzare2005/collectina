@@ -42,22 +42,14 @@ export default async function HomePage() {
 
       {should_i_render.show_poster && (
         <section className="flex flex-col gap-4 mt-2">
-          <HomeSectionHeader
-            title="پوسترها"
-            description="جدیدترین محصول کالکتینا"
-            href="/poster"
-          />
+          <HomeSectionHeader title="پوستر" href="/poster" />
           <PosterGrid pageSize={4} infinite={false} />
         </section>
       )}
 
       {should_i_render.show_phonecase && (
         <section className="flex flex-col gap-4 mt-2">
-          <HomeSectionHeader
-            title="قاب موبایل"
-            description="طرح‌های آماده برای بیش از 300 مدل گوشی"
-            href="/phonecase"
-          />
+          <HomeSectionHeader title="قاب موبایل" href="/phonecase" />
           <PhonecaseGrid pageSize={8} infinite={false} />
         </section>
       )}

@@ -172,16 +172,15 @@ export default function CustomPhoneCasePageClient({
       setCreatedProductId(result.product_id);
 
       toast({
-        title: "موفق",
-        description: "محصول به قاب‌ها اضافه شد",
+        title: "محصول به قاب‌ها اضافه شد",
       });
 
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding to products:", error);
       toast({
         title: "خطا",
-        description: "مشکلی در افزودن به قاب‌ها پیش آمد",
+        description: error.message || "مشکلی در افزودن به قاب‌ها پیش آمد",
         variant: "destructive",
       });
     } finally {

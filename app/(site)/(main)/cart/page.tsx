@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { CartItem, CartItemSkeleton } from "@/components/cart-item";
+import { CartItem } from "@/components/cart-item";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   CheckoutForm,
   type CheckoutFormControls,
@@ -194,7 +195,7 @@ export default function CartCheckoutPage() {
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto flex flex-col gap-4">
+      <div className="flex flex-col gap-8">
         <HomeSectionHeader
           title="سبد خرید"
           href="/dashboard"
@@ -208,16 +209,26 @@ export default function CartCheckoutPage() {
             </Button>
           }
         />
-        {Array.from({ length: 3 }).map((_, idx) => (
-          <CartItemSkeleton key={idx} />
-        ))}
+
+        <div className="flex flex-col gap-8 md:grid md:grid-cols-2 md:items-start">
+          <div className="flex min-w-0 flex-col gap-8">
+            <section className="flex flex-col gap-4 w-full">
+              {Array.from({ length: 3 }).map((_, idx) => (
+                <Skeleton className="w-full h-42 rounded-2xl" key={idx} />
+              ))}
+            </section>
+          </div>
+          <div className="flex min-w-0 h-full flex-col gap-8">
+            <Skeleton className="w-full min-h-100 h-full rounded-2xl px-4 py-6 md:px-5" />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="max-w-xl mx-auto space-y-4">
+      <div className="space-y-4">
         <EmptyCommon
           title="برای دیدن سبد خرید وارد شو"
           description="محصولات انتخابی‌ات بعد از ورود اینجا نمایش داده می‌شن"
@@ -240,7 +251,7 @@ export default function CartCheckoutPage() {
 
   if (!cartItems.length) {
     return (
-      <div className="max-w-xl mx-auto space-y-4">
+      <div className="space-y-4">
         <HomeSectionHeader
           title="سبد خرید"
           href="/dashboard"
@@ -267,7 +278,7 @@ export default function CartCheckoutPage() {
 
   return (
     <div
-      className="max-w-xl mx-auto flex flex-col gap-8 md:max-w-none"
+      className="flex flex-col gap-8"
       style={{ paddingBottom: stickySummaryHeight }}
     >
       <HomeSectionHeader

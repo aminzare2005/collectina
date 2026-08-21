@@ -133,8 +133,7 @@ export function CustomPosterSelector(props: CustomPosterSelectorProps) {
   const handleAddToCart = async () => {
     if (selectedPosterId) {
       toast({
-        title: "خطا",
-        description: "لطفا سایز پوستر رو انتخاب کن",
+        title: "لطفا سایز پوستر رو انتخاب کن",
         variant: "destructive",
       });
       return;
@@ -157,8 +156,7 @@ export function CustomPosterSelector(props: CustomPosterSelectorProps) {
       if (!productIdToUse) {
         if (!props.image_url) {
           toast({
-            title: "خطا",
-            description: "لطفا ابتدا تصویر را آپلود کنید",
+            title: "لطفا ابتدا تصویر را آپلود کنید",
             variant: "destructive",
           });
           return;
@@ -185,16 +183,15 @@ export function CustomPosterSelector(props: CustomPosterSelectorProps) {
 
       router.push("/cart");
       toast({
-        title: "موفق",
-        description: "محصول به سبد خرید اضافه شد",
+        title: "محصول به سبد خرید اضافه شد",
       });
 
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding to cart:", error);
       toast({
         title: "خطا",
-        description: "مشکلی در افزودن به سبد خرید پیش آمد",
+        description: error.message || "مشکلی در افزودن به سبد خرید پیش آمد",
         variant: "destructive",
       });
     } finally {

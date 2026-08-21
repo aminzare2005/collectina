@@ -68,8 +68,7 @@ export function PosterSelector({
   const handleAddToCart = async () => {
     if (!selectedPosterId) {
       toast({
-        title: "خطا",
-        description: "لطفا سایز پوستر رو انتخاب کن",
+        title: "لطفا سایز پوستر رو انتخاب کن",
         variant: "destructive",
       });
       return;
@@ -98,11 +97,11 @@ export function PosterSelector({
       });
       window.dispatchEvent(new Event("cart-updated"));
       router.push("/cart");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding to cart:", error);
       toast({
         title: "خطا",
-        description: "مشکلی در افزودن به سبد خرید پیش آمد",
+        description: error.message || "مشکلی در افزودن به سبد خرید پیش آمد",
         variant: "destructive",
       });
     } finally {

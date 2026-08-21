@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 type Props = {
   title: string;
   description?: string;
-  href: string;
+  href?: string;
   linkLabel?: string;
   children?: ReactNode;
 };
@@ -28,7 +28,7 @@ export default function HomeSectionHeader({
         )}
       </div>
       <Link
-        href={href}
+        href={href || ""}
         className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         {children ? (

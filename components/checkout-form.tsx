@@ -321,7 +321,7 @@ export function CheckoutForm({
 
       if (!response.ok) {
         toast({
-          title: data.error || "کد تخفیف معتبر نیست",
+          title: "کد تخفیف معتبر نیست",
           variant: "destructive",
         });
         return;
@@ -348,7 +348,7 @@ export function CheckoutForm({
       setAppliedDiscount(null);
       onDiscountChange(null);
       toast({
-        title: "خطا در اعمال کد تخفیف",
+        title: "خطا در اعمال کد تخفیف. دوباره امتحان کن",
         variant: "destructive",
       });
     } finally {
@@ -397,7 +397,6 @@ export function CheckoutForm({
       if (error instanceof z.ZodError) {
         toast({
           title: "خطا در فرم",
-          description: "لطفاً اطلاعات فرم را بررسی کنید",
           variant: "destructive",
         });
       } else {

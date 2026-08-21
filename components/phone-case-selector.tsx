@@ -96,8 +96,7 @@ export function PhoneCaseSelector({
   const handleAddToCart = async () => {
     if (!selectedBrand || !selectedPhoneCaseId) {
       toast({
-        title: "خطا",
-        description: "لطفا برند و مدل گوشی خود را انتخاب کنید",
+        title: "لطفا برند و مدل گوشی خود را انتخاب کنید",
         variant: "destructive",
       });
       return;
@@ -124,10 +123,10 @@ export function PhoneCaseSelector({
       });
       window.dispatchEvent(new Event("cart-updated"));
       router.push("/cart");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "خطا",
-        description: "مشکلی در افزودن به سبد خرید پیش آمد",
+        description: error.message || "مشکلی در افزودن به سبد خرید پیش آمد",
         variant: "destructive",
       });
     } finally {

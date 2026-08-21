@@ -111,8 +111,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
     if (!isFormValid) {
       toast({
-        title: "خطا در فرم",
-        description: "لطفاً تمام فیلدها را به درستی پر کنید",
+        title: "لطفاً تمام فیلدها را به درستی پر کنید",
         variant: "destructive",
       });
       return;
@@ -163,8 +162,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         setErrors(fieldErrors);
 
         toast({
-          title: "خطا در فرم",
-          description: "لطفاً اطلاعات فرم را بررسی کنید",
+          title: "لطفاً اطلاعات فرم را بررسی کنید",
           variant: "destructive",
         });
       } else {

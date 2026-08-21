@@ -45,7 +45,7 @@ export function CartItem({
 
   const formattedPrice = useMemo(
     () => new Intl.NumberFormat("fa-IR").format(price),
-    [price]
+    [price],
   );
 
   const updateQuantity = async (newQuantity: number) => {
@@ -62,12 +62,12 @@ export function CartItem({
         body: JSON.stringify({ id, quantity: newQuantity }),
       });
       if (!res.ok) throw new Error("Failed to update quantity");
-    } catch {
+    } catch (error: any) {
       // Revert on error
       onQuantityChange(id, quantity);
       toast({
         title: "خطا",
-        description: "مشکلی در به‌روزرسانی سبد خرید پیش آمد",
+        description: error?.message,
         variant: "destructive",
       });
     } finally {
@@ -90,14 +90,11 @@ export function CartItem({
 
       window.dispatchEvent(new Event("cart-updated"));
       toast({
-        title: "محصول حذف شد",
-        description: "محصول از سبد خرید حذف شد",
+        title: "محصول از سبد خرید حذف شد",
       });
     } catch {
-      // Note: hard to revert a remove easily - re-fetch or pass back item
       toast({
-        title: "خطا",
-        description: "مشکلی در حذف محصول پیش آمد",
+        title: "مشکلی در حذف محصول پیش آمد",
         variant: "destructive",
       });
     } finally {
@@ -133,7 +130,7 @@ export function CartItem({
     <Card
       className={cn(
         "w-full bg-card border p-4 rounded-2xl overflow-hidden transition-all",
-        isLoading && "opacity-70"
+        isLoading && "opacity-70",
       )}
     >
       <div className="grid grid-cols-5 items-center gap-4">
@@ -148,9 +145,8 @@ export function CartItem({
               {type === "phonecase"
                 ? "قاب موبایل"
                 : type === "poster"
-                ? "پوستر"
-                : ""}
-              {" "}
+                  ? "پوستر"
+                  : ""}{" "}
               {variantLabel}
             </p>
           </div>
@@ -204,10 +200,4 @@ export function CartItem({
       </div>
     </Card>
   );
-}
-
-export function CartItemSkeleton() {
-  return (
-    <Skeleton className="w-full rounded-2xl h-40" />
-  )
 }

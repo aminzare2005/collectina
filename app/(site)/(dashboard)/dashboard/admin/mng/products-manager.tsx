@@ -140,7 +140,7 @@ export default function ProductsManager() {
       await fetchProducts();
     } catch (error: any) {
       toast({
-        title: "حذف نشد!",
+        title: "خطا!",
         description: error?.message,
       });
     } finally {
@@ -288,11 +288,7 @@ export default function ProductsManager() {
                   })
                 }
               >
-                <SelectTrigger
-                  id="type"
-                  dir="rtl"
-                  className="bg-input/40"
-                >
+                <SelectTrigger id="type" dir="rtl" className="bg-input/40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent dir="rtl">

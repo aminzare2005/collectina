@@ -181,7 +181,6 @@ export default function CustomPosterPageClient({ poster }: { poster: any[] }) {
       setIsImageLoading(false);
       toast({
         title: "خطا در پردازش تصویر",
-        description: "لطفاً دوباره تلاش کنید",
         variant: "destructive",
       });
     }
@@ -292,8 +291,7 @@ export default function CustomPosterPageClient({ poster }: { poster: any[] }) {
       setUploadProgress(100);
 
       toast({
-        title: "✅ پوستر پیشنهادیت به دست ما رسید!",
-        description: "حالا می‌تونی به سبد خرید اضافه کنی",
+        title: "پوستر پیشنهادیت به دست ما رسید",
       });
 
       router.refresh();

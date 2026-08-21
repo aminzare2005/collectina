@@ -165,13 +165,11 @@ export default function RecentOrdersClient({
     try {
       await navigator.clipboard.writeText(payload);
       toast({
-        title: "کپی شد",
-        description: "اطلاعات سفارش در کلیپ‌بورد قرار گرفت.",
+        title: "اطلاعات سفارش در کلیپ‌بورد قرار گرفت.",
       });
     } catch {
       toast({
-        title: "کپی انجام نشد",
-        description: "مرورگر اجازه کپی نداد.",
+        title: "مرورگر اجازه کپی نداد.",
         variant: "destructive",
       });
     }
@@ -308,7 +306,7 @@ export default function RecentOrdersClient({
 
                       {order.note && (
                         <div className="bg-yellow-200 text-black text-sm mt-4 w-full p-2 rounded-md">
-                            {order.note}
+                          {order.note}
                         </div>
                       )}
 

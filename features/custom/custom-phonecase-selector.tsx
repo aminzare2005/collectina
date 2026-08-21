@@ -90,8 +90,7 @@ export function CustomPhoneCaseSelector(props: CustomPhoneCaseSelectorProps) {
   const handleAddToCart = async () => {
     if (!selectedBrand || !selectedPhoneCaseId) {
       toast({
-        title: "خطا",
-        description: "لطفا برند و مدل گوشی خود را انتخاب کنید",
+        title: "لطفا برند و مدل گوشی خود را انتخاب کنید",
         variant: "destructive",
       });
       return;
@@ -114,8 +113,7 @@ export function CustomPhoneCaseSelector(props: CustomPhoneCaseSelectorProps) {
       if (!productIdToUse) {
         if (!props.image_url) {
           toast({
-            title: "خطا",
-            description: "لطفا ابتدا تصویر را آپلود کنید",
+            title: "لطفا ابتدا تصویر را آپلود کنید",
             variant: "destructive",
           });
           return;
@@ -142,16 +140,15 @@ export function CustomPhoneCaseSelector(props: CustomPhoneCaseSelectorProps) {
 
       router.push("/cart");
       toast({
-        title: "موفق",
-        description: "محصول به سبد خرید اضافه شد",
+        title: "محصول به سبد خرید اضافه شد",
       });
 
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding to cart:", error);
       toast({
         title: "خطا",
-        description: "مشکلی در افزودن به سبد خرید پیش آمد",
+        description: error.message || "مشکلی در افزودن به سبد خرید پیش آمد",
         variant: "destructive",
       });
     } finally {
