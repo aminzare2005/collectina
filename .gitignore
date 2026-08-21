@@ -26,3 +26,6 @@ next-env.d.ts
 # dev
 todo
 .env
+
+# ai
+/.freebuff
