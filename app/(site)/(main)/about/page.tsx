@@ -1,4 +1,5 @@
 import { DisplayVersion } from "@/components/display-version";
+import HomeSectionHeader from "@/components/home-section-header";
 import { Button } from "@/components/ui/button";
 import { BotIcon, GlobeIcon, InstagramIcon, SendIcon } from "lucide-react";
 import Image from "next/image";
@@ -10,64 +11,59 @@ export default function AboutPage() {
       <main className="w-full max-w-4xl">
         <div className="grid sm:grid-cols-2 gap-12 items-center">
           <div className="w-full aspect-square bg-muted rounded-xl flex items-center justify-center order-first sm:order-last">
-            <h1 className="text-5xl text-center font-black tracking-tighter dark:opacity-10 opacity-20">
-              VLONE
-              <br />
-              FARSI
-            </h1>
             <Image
+              draggable="false"
               src="/images/logo.svg"
               alt="Logo"
               height={60}
               width={60}
-              className="dark:invert size-20 invert-0 dark:opacity-10 opacity-20"
+              className="size-28 invert-0 opacity-20"
             />
           </div>
 
           {/* ستون دوم: متن محتوا */}
           <div className="space-y-6">
             <h2 className="text-3xl font-bold tracking-tight">داستان ما</h2>
-            {/* <div className="space-y-4 text-muted-foreground leading-7">
-              <p>
-                برند <strong className="text-foreground">کالکتینا</strong>{" "}
-                اوایل سال ۲۰۲۴ با هدف عرضه محصولاتی منحصر به فرد تاسیس شد. اسم
-                ما از برند VLONE در نیویورک الهام گرفته شده که انقلابی در صنعت
-                موسیقی و فشن ایجاد کرد.
-              </p>
-              <p>
-                پس از اون در میانه سال ۲۰۲۵ وبسایت خودمون را راه‌اندازی کردیم و
-                در اوایل ۲۰۲۶، با وجود مشکلات مختلف، سری جدیدی از پوسترها رو
-                منتشر کردیم.
-              </p>
-              <p className="font-semibold text-foreground">
-                ممنونیم که در این مسیر کنار ما هستید.
-              </p>
-            </div> */}
+            <div className="space-y-4 text-muted-foreground leading-7">
+              <p>کالکتینا تازه اول راهشه🫶🏻</p>
+            </div>
 
-            {/* لینک های ارتباطی */}
-            <div className="flex flex-wrap gap-3 pt-4">
-              <Link href="https://instagram.com/collectina" target="_blank">
-                <Button variant="outline" className="gap-2">
+            <div className="flex gap-2">
+              <Link href="https://instagram.com/collectina" target="_blank"  className="w-full">
+                <Button variant="outline" className="gap-2 w-full">
                   <InstagramIcon className="w-4 h-4" /> اینستاگرام
                 </Button>
               </Link>
-              <Link href="https://t.me/collectina" target="_blank">
-                <Button variant="outline" className="gap-2">
+              <Link href="https://t.me/collectina" target="_blank" className="w-full">
+                <Button variant="outline" className="gap-2 w-full">
                   <SendIcon className="w-4 h-4" /> تلگرام
                 </Button>
               </Link>
-              <Link href="/support" target="_blank">
-                <Button variant="outline" className="gap-2">
+              <Link href="/support" target="_blank" className="w-full">
+                <Button variant="outline" className="gap-2 w-full">
                   <GlobeIcon className="w-4 h-4" /> پشتیبانی
                 </Button>
               </Link>
             </div>
           </div>
         </div>
+        <div className="mt-6">
+          <HomeSectionHeader title="تایم لاین اتفاقات" href="/" children />
+          <ul className="flex flex-col-reverse gap-2 text-muted-foreground leading-7 mt-2">
+            <li className="rounded-lg py-1 px-2 bg-muted">
+              <span className="font-mono font-semibold">1405/5/26</span> - شروع توسعه وبسایت
+              از سورس کد ویلون فارسی (vlonefarsi.ir)
+            </li>
+            <li className="rounded-lg py-1 px-2 bg-muted">
+              <span className="font-mono font-semibold">1405/5/27</span> - خرید دامنه کالکتینا
+              دات آی آر
+            </li>
+          </ul>
+        </div>
       </main>
 
       {/* فوتر استاندارد */}
-      <footer className="mt-24 text-center text-xs text-muted-foreground">
+      <footer className="mt-6 text-center text-xs text-muted-foreground">
         <div dir="ltr">
           © {new Date().getFullYear()} COLLECTINA • <DisplayVersion />
         </div>
