@@ -85,7 +85,7 @@ export default function Header() {
               onClick={toggleMenu}
               className="relative flex items-center justify-center group cursor-pointer hover:bg-transparent!"
               aria-label="Menu"
-              variant={"ghost2"}
+              variant={"ghost"}
               size={"icon"}
             >
               <span
@@ -136,7 +136,7 @@ export default function Header() {
               draggable="false"
               aria-label={`سبد خرید${cartCount ? `، ${cartCount} آیتم` : ""}`}
             >
-              <Button variant={"ghost2"} size={"icon"} className="relative">
+              <Button variant={"ghost"} size={"icon"} className="relative">
                 <ShoppingBasketIcon className="size-6" />
                 {cartCount > 0 && (
                   <span className="absolute -top-0.5 -left-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-bold leading-none text-background">
