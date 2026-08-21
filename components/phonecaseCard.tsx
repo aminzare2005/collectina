@@ -1,8 +1,10 @@
 "use client";
+import { REALESTIC_TEXTURE_STYLE } from "@/constants";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { NoiseTexture } from "./ui/noise";
 
 type Props = {
   href?: string;
@@ -41,11 +43,13 @@ function PhonecaseCard(props: Props) {
           quality={props.quality == "low" ? 40 : 75}
           draggable="false"
           className={cn(
-            "h-full w-full object-cover transition-all duration-500 brightness-90",
+            "h-full w-full object-cover transition-all duration-500",
+            REALESTIC_TEXTURE_STYLE,
             !imageLoaded && "blur",
           )}
           onLoad={handleImageLoad}
         />
+        <NoiseTexture noiseOpacity={0.4} />
       </div>
 
       <div className="absolute left-0 top-0 m-[5%] flex w-1/3 flex-col rounded-full border border-stone-900/40 bg-stone-800 p-[4%] transition-all duration-500">
@@ -58,7 +62,11 @@ function PhonecaseCard(props: Props) {
   if (isLink) {
     return (
       <div className={shellClass}>
-        <Link className="block h-full w-full" href={props.href!} draggable="false">
+        <Link
+          className="block h-full w-full"
+          href={props.href!}
+          draggable="false"
+        >
           {inner}
         </Link>
       </div>

@@ -1,8 +1,10 @@
 "use client";
+import { REALESTIC_TEXTURE_STYLE } from "@/constants";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { NoiseTexture } from "./ui/noise";
 
 type Props = {
   href?: string;
@@ -34,7 +36,8 @@ function PosterCard(props: Props) {
       quality={props.quality == "low" ? 40 : 75}
       draggable="false"
       className={cn(
-        "h-full w-full object-cover transition-all duration-500 brightness-90",
+        "h-full w-full object-cover transition-all duration-500",
+        REALESTIC_TEXTURE_STYLE,
         !imageLoaded && "blur",
       )}
       placeholder="blur"
@@ -47,17 +50,22 @@ function PosterCard(props: Props) {
     <div
       className={cn(
         props.className,
-        "aspect-7/10 w-full overflow-hidden rounded-xs bg-background shadow duration-300",
+        "aspect-7/10 relative w-full overflow-hidden rounded-xs bg-background shadow duration-300",
         isLink ? "cursor-pointer" : "pointer-events-none cursor-default",
       )}
     >
       {isLink ? (
-        <Link href={props.href!} className="block h-full w-full" draggable="false">
+        <Link
+          href={props.href!}
+          className="block h-full w-full"
+          draggable="false"
+        >
           {image}
         </Link>
       ) : (
         <div className="h-full w-full">{image}</div>
       )}
+      <NoiseTexture noiseOpacity={0.4} className="z-100" />
     </div>
   );
 }

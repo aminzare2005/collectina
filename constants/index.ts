@@ -42,3 +42,5 @@ export const MENU_ITEMS = [
     disabled: false,
   },
 ];
+
+export const REALESTIC_TEXTURE_STYLE = "saturate-[0.70] brightness-90";
