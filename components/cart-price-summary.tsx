@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import type { calculateCartShipping } from "@/lib/shipping";
 
 type ShippingResult = ReturnType<typeof calculateCartShipping>;
@@ -42,7 +43,7 @@ function ShippingAmount({
     );
   }
 
-  return <p>{formatNumber(shippingPrice)} تومان</p>;
+  return <p className="inline-flex items-center gap-1"><span>{formatNumber(shippingPrice)}</span><TomanIcon className="size-3.5" /></p>;
 }
 
 function BreakdownRows({
@@ -60,7 +61,7 @@ function BreakdownRows({
     <>
       <div className="flex justify-between">
         <p className="text-sm text-muted-foreground">جمع خرید:</p>
-        <p>{formatNumber(subtotal)} تومان</p>
+        <p className="inline-flex items-center gap-1"><span>{formatNumber(subtotal)}</span><TomanIcon className="size-3.5" /></p>
       </div>
 
       <div className="flex justify-between">
@@ -71,7 +72,7 @@ function BreakdownRows({
       {discountAmount > 0 && (
         <div className="flex justify-between text-green-600">
           <p className="text-sm">تخفیف:</p>
-          <p>{formatNumber(discountAmount)} تومان</p>
+          <p className="inline-flex items-center gap-1"><span>{formatNumber(discountAmount)}</span><TomanIcon className="size-3.5" /></p>
         </div>
       )}
     </>
@@ -89,7 +90,7 @@ function FinalTotalRow({
     <div className={cn("flex justify-between", className)}>
       <p className="font-semibold text-lg">مجموع نهایی:</p>
       <p className="text-xl font-bold md:text-2xl">
-        {formatNumber(finalTotal)} تومان
+        <span className="inline-flex items-center gap-1"><span>{formatNumber(finalTotal)}</span><TomanIcon className="size-4" /></span>
       </p>
     </div>
   );

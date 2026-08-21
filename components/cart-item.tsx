@@ -3,6 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2 } from "lucide-react";
+import { TomanIcon } from "@/components/ui/toman-icon";
 
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -153,7 +154,7 @@ export function CartItem({
 
           <div className="flex items-center gap-2">
             <div className="text-xl flex gap-1 items-center font-medium">
-              <span>تومان</span>
+              <TomanIcon className="size-4" />
               <span>{formattedPrice}</span>
             </div>
             {!available && (

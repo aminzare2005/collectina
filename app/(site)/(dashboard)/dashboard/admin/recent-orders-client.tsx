@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import {
   CalendarDays,
   Copy,
@@ -284,7 +285,7 @@ export default function RecentOrdersClient({
                             {orderItemSummary}
                           </p>
 
-                          <p className="text-sm font-semibold">{price} تومان</p>
+                          <p className="text-sm font-semibold inline-flex items-center gap-1"><span>{price}</span><TomanIcon className="size-3.5" /></p>
                         </div>
                       </div>
 

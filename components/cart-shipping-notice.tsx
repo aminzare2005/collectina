@@ -1,4 +1,5 @@
 import { Package } from "lucide-react";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import type { calculateCartShipping } from "@/lib/shipping";
 
 type ShippingResult = ReturnType<typeof calculateCartShipping>;
@@ -39,8 +40,8 @@ export default function CartShippingNotice({
         </p>
         <p className="text-muted-foreground">
           الان هم {labels} توی سبدته. {originHint}برای همین به‌ازای هر بخش یک
-          هزینه ارسال ({formatNumber(postPricePerShipment)} تومان) محاسبه شده و
-          جمعاً {formatNumber(shipping.total)} تومان می‌شه.
+          هزینه ارسال (<span className="inline-flex items-center gap-0.5"><span>{formatNumber(postPricePerShipment)}</span><TomanIcon className="size-3" /></span>) محاسبه شده و
+          جمعاً <span className="inline-flex items-center gap-0.5"><span>{formatNumber(shipping.total)}</span><TomanIcon className="size-3" /></span> می‌شه.
         </p>
       </div>
     </div>

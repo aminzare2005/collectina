@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import {
   Select,
   SelectContent,
@@ -165,7 +166,7 @@ export function PosterSelector({
           selectedPoster ? (
             <span className="inline-flex items-baseline gap-1">
               {formatPrice(parseInt(selectedPoster.price, 10))}
-              <span className="text-base font-bold opacity-70">تومان</span>
+              <TomanIcon className="size-4 opacity-70" />
             </span>
           ) : (
             <span className="text-sm font-normal text-muted-foreground">
