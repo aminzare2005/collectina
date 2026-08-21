@@ -4,7 +4,6 @@ import { Rubik } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/theme-provider";
 
 const font = Rubik({
   subsets: ["arabic"],
@@ -74,13 +73,7 @@ export default function RootLayout({
         <meta name="enamad" content="33457824" />
       </head>
       <body className={`font-sans ${font.className}`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        {children}
         <Toaster />
         <Analytics />
       </body>

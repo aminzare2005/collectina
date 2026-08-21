@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { MENU_ITEMS } from "@/constants";
-import SwitchTheme from "./switch-theme";
 import Image from "next/image";
 
 export default function Header() {
@@ -76,7 +75,7 @@ export default function Header() {
     <>
       <header
         className={cn(
-          "fixed max-w-2xl h-16 mx-auto flex flex-row items-center gap-2 top-4 right-4 left-4 z-99999 px-4 backdrop-blur-sm bg-background/70 border border-muted-foreground/20 dark:border-muted-foreground/10 rounded-full",
+          "fixed max-w-xl h-16 mx-auto flex flex-row items-center gap-2 top-4 right-4 left-4 z-99999 px-4 backdrop-blur-sm bg-background/70 border border-muted-foreground/20 rounded-2xl",
           isMenuOpen && "bg-transparent backdrop-blur-none border-transparent!",
         )}
       >
@@ -117,6 +116,7 @@ export default function Header() {
           </div>
           <Link
             href="/"
+            draggable="false"
             className="flex items-center gap-1.5 font-bold text-lg"
           >
             <Image
@@ -124,7 +124,8 @@ export default function Header() {
               alt="Logo"
               width={32}
               height={32}
-              className="size-6 dark:invert invert-0"
+              className="size-6"
+              draggable="false"
             />
             <h1>کالکتینا</h1>
           </Link>
@@ -132,6 +133,7 @@ export default function Header() {
           <div className="flex gap-0.5 items-center relative">
             <Link
               href="/cart"
+              draggable="false"
               aria-label={`سبد خرید${cartCount ? `، ${cartCount} آیتم` : ""}`}
             >
               <Button variant={"ghost2"} size={"icon"} className="relative">
@@ -151,7 +153,7 @@ export default function Header() {
       {isMenuOpen && (
         <div className="fixed inset-0 z-99998">
           <div
-            className="absolute inset-0 bg-background/60 backdrop-blur-md"
+            className="absolute inset-0 bg-background/70 backdrop-blur-md"
             onClick={() => setIsMenuOpen(false)}
           ></div>
 
@@ -172,11 +174,11 @@ export default function Header() {
                         setIsMenuOpen(false);
                       }, 200)
                     }
-                    className="flex items-center hover:bg-foreground/5 rounded-md transition-colors w-full justify-center gap-2 text-lg font-medium py-2 hoveranim"
+                    className="flex items-center cursor-pointer hover:bg-foreground/5 rounded-md transition-colors w-full justify-center gap-2 text-lg font-medium py-2 hoveranim"
                   >
                     {item.title}
                     {item.new && (
-                      <div className="dark:bg-violet-400/50 bg-violet-500/60 rounded-lg text-sm flex items-center gap-1 py-0.5 px-1.5 animate-pulse">
+                      <div className="bg-violet-500/60 rounded-lg text-sm flex items-center gap-1 py-0.5 px-1.5 animate-pulse">
                         جدید
                       </div>
                     )}
@@ -185,6 +187,7 @@ export default function Header() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    draggable="false"
                     className={cn(
                       "flex items-center hover:bg-foreground/5 rounded-md transition-colors w-full justify-center gap-2 text-lg font-medium py-2 hoveranim",
                       item.disabled && "opacity-50 pointer-events-none",
@@ -192,14 +195,13 @@ export default function Header() {
                   >
                     {item.title}
                     {item.new && (
-                      <div className="dark:bg-violet-400/50 bg-violet-500/60 rounded-lg text-sm flex items-center gap-1 py-0.5 px-1.5 animate-pulse">
+                      <div className="bg-violet-500/60 rounded-lg text-sm flex items-center gap-1 py-0.5 px-1.5 animate-pulse">
                         جدید
                       </div>
                     )}
                   </Link>
                 );
               })}
-              <SwitchTheme />
             </div>
           </div>
         </div>

@@ -23,7 +23,7 @@ function PhonecaseCard(props: Props) {
 
   const shellClass = cn(
     props.className,
-    "aspect-9/18 w-full shadow border border-muted-foreground/20 dark:border-muted-foreground/10 duration-300 bg-stone-200 dark:bg-stone-900 overflow-hidden relative",
+    "aspect-9/18 w-full shadow border border-muted-foreground/20 duration-300 bg-stone-200 overflow-hidden relative",
     props.size === "small" && "rounded-lg",
     props.size === "big" && "rounded-3xl md:rounded-4xl",
     isLink ? "cursor-pointer" : "pointer-events-none cursor-default",

@@ -291,7 +291,7 @@ export default function CustomPhoneCasePageClient({
                 </>
               ) : (
                 <>
-                  <div className="w-12 h-12 bg-stone-300 dark:bg-stone-800 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-stone-300 rounded-full flex items-center justify-center">
                     <Upload className="w-6 h-6" />
                   </div>
                   <div className="space-y-2">

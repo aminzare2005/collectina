@@ -291,7 +291,7 @@ export default function ProductsManager() {
                 <SelectTrigger
                   id="type"
                   dir="rtl"
-                  className="bg-input/40 dark:bg-input/30"
+                  className="bg-input/40"
                 >
                   <SelectValue />
                 </SelectTrigger>

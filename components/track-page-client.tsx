@@ -37,7 +37,7 @@ export default function TrackPageClient({ order }: { order: any }) {
 
   return (
     <>
-      <div className="absolute top-0 left-0 right-0 bg-linear-to-b from-black/20 dark:from-white/10 opacity-80 animate-pulse to-background h-96 -z-50" />
+      <div className="absolute top-0 left-0 right-0 bg-linear-to-b from-black/20 opacity-80 animate-pulse to-background h-96 -z-50" />
       <div className="p-4 md:p-6 animate-in fade-in duration-300 w-full">
         <Card
           key={order.id}

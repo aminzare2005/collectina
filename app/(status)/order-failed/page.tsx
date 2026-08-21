@@ -54,7 +54,7 @@ export default async function OrderFailedPage({
 
   return (
     <div className="w-full">
-      <div className="absolute top-0 left-0 right-0 bg-linear-to-b dark:from-red-500/10 from-red-500/30 to-background h-80 -z-50" />
+      <div className="absolute top-0 left-0 right-0 bg-linear-to-b from-red-500/30 to-background h-80 -z-50" />
       <div className="w-full">
         <div>
           {/* Header with gradient background */}
@@ -113,7 +113,7 @@ export default async function OrderFailedPage({
                       وضعیت پرداخت:
                     </span>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 dark:bg-red-500/10 text-red-700 font-semibold text-sm">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 text-red-700 font-semibold text-sm">
                     <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
                     ناموفق
                   </span>

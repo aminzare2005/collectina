@@ -29,7 +29,7 @@ function ShippingAmount({
 }) {
   if (shippingPrice === 0) {
     return (
-      <p className="text-green-600 dark:text-green-400">رایگان</p>
+      <p className="text-green-600">رایگان</p>
     );
   }
 
@@ -69,7 +69,7 @@ function BreakdownRows({
       </div>
 
       {discountAmount > 0 && (
-        <div className="flex justify-between text-green-600 dark:text-green-400">
+        <div className="flex justify-between text-green-600">
           <p className="text-sm">تخفیف:</p>
           <p>{formatNumber(discountAmount)} تومان</p>
         </div>

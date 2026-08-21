@@ -242,7 +242,7 @@ function OrderItem({
   const label = statusLabels[status] ?? "نامشخص";
 
   return (
-    <div className="flex flex-col justify-between gap-4 p-4 rounded-2xl border dark:bg-transparent bg-background">
+    <div className="flex flex-col justify-between gap-4 p-4 rounded-2xl border bg-background">
       <div className="flex items-center gap-4 flex-1">
         <div dir="ltr" className="flex-1">
           <div className="flex flex-row items-center justify-between gap-3 mb-1">

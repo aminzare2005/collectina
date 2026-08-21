@@ -54,7 +54,7 @@ export default async function OrderSuccessPage({
 
   return (
     <div className="w-full">
-      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b dark:from-green-500/10 from-green-500/20 to-background h-80 -z-50" />
+      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-green-500/20 to-background h-80 -z-50" />
       <div className="w-full">
         <div>
           {/* Header with gradient background */}

@@ -10,7 +10,7 @@ function PhonecaseCardSkeleton(props: Props) {
   return (
     <Skeleton
       className={cn(
-        "aspect-9/18 w-full relative border border-stone-300 dark:border-stone-700",
+        "aspect-9/18 w-full relative border border-stone-300",
         props.size === "small" && "rounded-lg",
         props.size === "big" && "rounded-3xl md:rounded-4xl"
       )}

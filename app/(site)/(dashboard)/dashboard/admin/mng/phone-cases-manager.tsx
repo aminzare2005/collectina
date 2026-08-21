@@ -209,7 +209,7 @@ export default function PhoneCasesManager() {
               value={formData.brand}
               onValueChange={(val) => setFormData({ ...formData, brand: val })}
             >
-              <SelectTrigger dir="rtl" className="bg-input/40 dark:bg-input/30">
+              <SelectTrigger dir="rtl" className="bg-input/40">
                 <SelectValue placeholder="برند گوشی رو انتخاب کن" />
               </SelectTrigger>
               <SelectContent dir="rtl">

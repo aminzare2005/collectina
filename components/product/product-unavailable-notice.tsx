@@ -12,13 +12,13 @@ export function ProductUnavailableNotice({ title, description }: Props) {
     <div className="space-y-4">
       <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3">
         <div className="rounded-lg bg-amber-500/20 p-1.5">
-          <Clock className="size-4 text-amber-600 dark:text-amber-400" />
+          <Clock className="size-4 text-amber-600" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-bold text-amber-800 dark:text-amber-200">
+          <p className="text-sm font-bold text-amber-800">
             {title}
           </p>
-          <p className="text-xs leading-relaxed text-amber-700/80 dark:text-amber-100/80">
+          <p className="text-xs leading-relaxed text-amber-700/80">
             {description}
           </p>
         </div>

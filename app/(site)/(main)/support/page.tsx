@@ -7,7 +7,7 @@ import Image from "next/image";
 function SupportPage() {
   return (
     <div className="flex flex-col items-center max-w-lg justify-center min-h-[70dvh] mx-auto p-6 gap-6 text-center">
-      <div className="absolute top-0 left-0 right-0 bg-linear-to-t dark:from-sky-500/5 from-sky-500/20 to-background h-dvh -z-50" />
+      <div className="absolute top-0 left-0 right-0 bg-linear-to-t from-sky-500/20 to-background h-dvh -z-50" />
       <p className="text-5xl font-extrabold mb-4">پشتیبانی تلگرام</p>
 
       <p className="opacity-70 text-lg">

@@ -279,7 +279,7 @@ NEXT_PUBLIC_ADMIN_PHONE_NUMBER=  # phone number (09…) whose user is the admin
   `customPhonecasePreviewImage` (custom upload preview).
 - `useToast` is a project hook (`hooks/use-toast.ts`) wrapping sonner — use it, not raw sonner.
 - Tailwind v4 syntax: CSS-first config, `@theme inline`, arbitrary utilities like `size-*`, and
-  `!` suffix for important (e.g. `border-0!`, `bg-transparent!`). Dark variants use `dark:`.
+  `!` suffix for important (e.g. `border-0!`, `bg-transparent!`).
 - The custom upload flow (`features/custom/`) uploads images via `/api/upload` (which uses the
   `StorageProvider` abstraction — S3 or Supabase Storage) and creates a `products` row.
 - Git commit style: conventional prefixes (`fix:`, `feat:`, `refactor:`, `style:`) + version tags.
