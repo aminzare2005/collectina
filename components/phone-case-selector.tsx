@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { ShouldIRenderType } from "@/helpers/should-i-render";
-import { ToastAction } from "@/components/ui/toast";
 import { ProductPurchaseDock } from "@/components/product/product-purchase-dock";
 import { ProductUnavailableNotice } from "@/components/product/product-unavailable-notice";
 
