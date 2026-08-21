@@ -42,7 +42,7 @@ export default async function DashboardLayout({
 
   return (
     <>
-      <header className="fixed max-w-2xl h-16 mx-auto flex flex-row items-center gap-0.5 top-4 right-4 left-4 z-20 px-4 backdrop-blur-sm bg-background/50 border border-muted-foreground/20 dark:border-muted-foreground/10 rounded-full">
+      <header className="fixed max-w-xl h-16 mx-auto flex flex-row items-center gap-0.5 top-4 right-4 left-4 z-20 px-4 backdrop-blur-sm bg-background/50 border border-muted-foreground/20 rounded-2xl">
         <Link href={"/"}>
           <Button variant={"ghost2"} size={"icon"}>
             <HomeIcon className="size-6" />
