@@ -27,7 +27,7 @@ export default async function HomePage() {
           شو.
         </p>
         <Button size="lg" className="h-12 px-8 gap-2" asChild>
-          <Link href="https://t.me/collectina">
+          <Link href="https://t.me/CollectinaShop">
             <Send className="size-4" />
             عضویت در کانال تلگرام
           </Link>

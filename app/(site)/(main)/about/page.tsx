@@ -29,17 +29,25 @@ export default function AboutPage() {
             </div>
 
             <div className="flex gap-2">
-              <Link href="https://instagram.com/collectina" target="_blank"  className="w-full">
-                <Button variant="outline" className="gap-2 w-full">
+              <Link
+                href="https://instagram.com/collectinashop"
+                target="_blank"
+                className="w-full pointer-events-none"
+              >
+                <Button disabled variant="outline" className="gap-2 w-full">
                   <InstagramIcon className="w-4 h-4" /> اینستاگرام
                 </Button>
               </Link>
-              <Link href="https://t.me/collectina" target="_blank" className="w-full">
+              <Link
+                href="https://t.me/CollectinaShop"
+                target="_blank"
+                className="w-full"
+              >
                 <Button variant="outline" className="gap-2 w-full">
                   <SendIcon className="w-4 h-4" /> تلگرام
                 </Button>
               </Link>
-              <Link href="/support" target="_blank" className="w-full">
+              <Link href="/support" className="w-full">
                 <Button variant="outline" className="gap-2 w-full">
                   <GlobeIcon className="w-4 h-4" /> پشتیبانی
                 </Button>
@@ -51,12 +59,12 @@ export default function AboutPage() {
           <HomeSectionHeader title="تایم لاین اتفاقات" href="/" children />
           <ul className="flex flex-col-reverse gap-2 text-muted-foreground leading-7 mt-2">
             <li className="rounded-lg py-1 px-2 bg-muted">
-              <span className="font-mono font-semibold">1405/5/26</span> - شروع توسعه وبسایت
-              از سورس کد ویلون فارسی (vlonefarsi.ir)
+              <span className="font-mono font-semibold">1405/5/26</span> - شروع
+              توسعه وبسایت از سورس کد ویلون فارسی (vlonefarsi.ir)
             </li>
             <li className="rounded-lg py-1 px-2 bg-muted">
-              <span className="font-mono font-semibold">1405/5/27</span> - خرید دامنه کالکتینا
-              دات آی آر
+              <span className="font-mono font-semibold">1405/5/27</span> - خرید
+              دامنه کالکتینا دات آی آر
             </li>
           </ul>
         </div>

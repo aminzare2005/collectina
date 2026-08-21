@@ -15,16 +15,14 @@ export function ProductUnavailableNotice({ title, description }: Props) {
           <Clock className="size-4 text-amber-600" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-bold text-amber-800">
-            {title}
-          </p>
+          <p className="text-sm font-bold text-amber-800">{title}</p>
           <p className="text-xs leading-relaxed text-amber-700/80">
             {description}
           </p>
         </div>
       </div>
       <Button variant="secondary" className="h-12 w-full gap-2" asChild>
-        <Link href="https://t.me/collectina">
+        <Link href="https://t.me/CollectinaShop">
           <Send className="size-4" />
           عضویت در کانال تلگرام
         </Link>
