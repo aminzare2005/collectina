@@ -54,12 +54,17 @@ export class S3StorageProvider implements StorageProvider {
     this.publicBaseUrl = process.env.S3_PUBLIC_URL ?? `${endpoint}/${bucket}`;
   }
 
-  async upload(path: string, data: Buffer, contentType: string): Promise<string> {
+  async upload(
+    path: string,
+    data: Buffer,
+    contentType: string,
+  ): Promise<string> {
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucket,
         Key: path,
         Body: data,
+        ACL: "public-read",
         ContentType: contentType,
       }),
     );
@@ -87,6 +92,8 @@ export class S3StorageProvider implements StorageProvider {
     });
 
     const response = await this.client.send(command);
-    return (response.Contents ?? []).map((obj) => obj.Key ?? "").filter(Boolean);
+    return (response.Contents ?? [])
+      .map((obj) => obj.Key ?? "")
+      .filter(Boolean);
   }
 }
