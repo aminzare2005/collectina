@@ -9,7 +9,7 @@ export function StatCard({
 }: {
   icon: React.ReactNode;
   title: string;
-  value: string;
+  value: React.ReactNode;
   gradient?: string;
 }) {
   return (

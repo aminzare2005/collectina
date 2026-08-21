@@ -13,6 +13,7 @@ import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import { cn } from "@/lib/utils";
 
 type Poster = {
@@ -240,7 +241,7 @@ export function CustomPosterSelector(props: CustomPosterSelectorProps) {
                   {new Intl.NumberFormat("fa-IR").format(
                     selectedPosterData.price
                   )}
-                  تومان
+                  <TomanIcon className="size-4" />
                 </div>
               ) : (
                 ""

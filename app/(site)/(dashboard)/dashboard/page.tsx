@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatCard } from "@/components/ui/stat-card";
+import { TomanIcon } from "@/components/ui/toman-icon";
 
 type Order = {
   id: string;
@@ -46,7 +47,7 @@ export default async function DashboardPage() {
   const recentOrders = await OrderRepository.getByUserId(user.id);
 
   const formatPrice = (v: number | null | undefined): string =>
-    new Intl.NumberFormat("fa-IR").format(v ?? 0) + " تومان";
+    new Intl.NumberFormat("fa-IR").format(v ?? 0);
 
   const totalSpent =
     recentOrders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) ||
@@ -82,7 +83,7 @@ export default async function DashboardPage() {
           <StatCard
             icon={<Clock className="h-6 w-6" />}
             title="مجموع سفارشات"
-            value={totalSpent !== 0 ? formatPrice(totalSpent) : "—"}
+            value={totalSpent !== 0 ? <span className="inline-flex items-center gap-1"><span>{formatPrice(totalSpent)}</span><TomanIcon className="size-4" /></span> : "—"}
             gradient="from-orange-400 to-red-400"
           />
 
@@ -261,7 +262,7 @@ function OrderItem({
             </div>
             <div dir="rtl">
               <p className="font-bold text-xl">
-                {formatPrice(order.total_amount)}
+                <span className="inline-flex items-center gap-1"><span>{formatPrice(order.total_amount)}</span><TomanIcon className="size-4" /></span>
               </p>
               <div className="flex items-center gap-1 text-xs text-accent-foreground">
                 <Calendar size={12} />

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "./ui/textarea";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import { z } from "zod";
 import {
   ArrowLeft,
@@ -651,7 +652,7 @@ export function CheckoutForm({
               </>
             ) : (
               <>
-                پرداخت {formatNumber(finalTotal)} تومان
+                <span className="inline-flex items-center gap-1.5"><span>پرداخت {formatNumber(finalTotal)}</span><TomanIcon className="size-4" /></span>
                 <ArrowLeft className="size-5" />
               </>
             )}
@@ -711,7 +712,7 @@ export function CheckoutForm({
         <AlertDialogContent dir="rtl" className="max-w-md gap-5">
           <AlertDialogHeader className="gap-4 text-right sm:text-right">
             <AlertDialogTitle className="text-right text-lg">
-              پرداخت {formatNumber(finalTotal)} تومان؟
+              <span className="inline-flex items-center gap-1.5"><span>پرداخت {formatNumber(finalTotal)}</span><TomanIcon className="size-4" /></span>؟
             </AlertDialogTitle>
             <AlertDialogDescription className="sr-only">
               مبلغ قابل پرداخت {formatNumber(finalTotal)} تومان.

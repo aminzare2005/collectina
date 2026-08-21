@@ -9,6 +9,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import { redirect } from "next/navigation";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import { Order } from "@/lib/types/database";
 
 // ===========================
@@ -106,7 +107,7 @@ export default async function OrderSuccessPage({
                     </span>
                   </div>
                   <span className="font-bold text-foreground text-lg">
-                    {formattedTotal} تومان
+                    <span className="inline-flex items-center gap-1"><span>{formattedTotal}</span><TomanIcon className="size-4" /></span>
                   </span>
                 </div>
               </div>

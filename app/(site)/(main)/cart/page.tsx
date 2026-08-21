@@ -13,6 +13,7 @@ import { ArrowLeftIcon, LogInIcon, User2Icon } from "lucide-react";
 import { Profile } from "@/lib/types/database";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import CartPosterSuggestion from "@/components/cart-poster-suggestion";
 import CartShippingNotice from "@/components/cart-shipping-notice";
 import CartPriceSummary from "@/components/cart-price-summary";
@@ -389,9 +390,14 @@ export default function CartCheckoutPage() {
               >
                 {checkoutUi.isLoading
                   ? "در حال پردازش..."
-                  : checkoutUi.canSubmit
-                    ? `پرداخت ${formatNumber(checkoutUi.payAmount)} تومان`
-                    : "تکمیل اطلاعات ارسال"}
+                  : checkoutUi.canSubmit ? (
+                    <span className="inline-flex items-center gap-1">
+                      <span>پرداخت {formatNumber(checkoutUi.payAmount)}</span>
+                      <TomanIcon className="size-4" />
+                    </span>
+                  ) : (
+                    "تکمیل اطلاعات ارسال"
+                  )}
                 <ArrowLeftIcon className="size-5" />
               </Button>
             </div>
@@ -421,9 +427,14 @@ export default function CartCheckoutPage() {
           >
             {checkoutUi.isLoading
               ? "در حال پردازش..."
-              : checkoutUi.canSubmit
-                ? `پرداخت ${formatNumber(checkoutUi.payAmount)} تومان`
-                : "تکمیل اطلاعات ارسال"}
+              : checkoutUi.canSubmit ? (
+                <span className="inline-flex items-center gap-1">
+                  <span>پرداخت {formatNumber(checkoutUi.payAmount)}</span>
+                  <TomanIcon className="size-4" />
+                </span>
+              ) : (
+                "تکمیل اطلاعات ارسال"
+              )}
             <ArrowLeftIcon className="size-5" />
           </Button>
         </div>

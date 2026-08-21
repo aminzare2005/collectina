@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Package, CreditCard, Clock, XCircleIcon } from "lucide-react";
 import { redirect } from "next/navigation";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import type { Order } from "@/lib/types/database";
 
 // ===========================
@@ -102,7 +103,7 @@ export default async function OrderFailedPage({
                     <span className="text-sm text-foreground/80">مبلغ:</span>
                   </div>
                   <span className="font-bold text-foreground text-lg">
-                    {formattedTotal} تومان
+                    <span className="inline-flex items-center gap-1"><span>{formattedTotal}</span><TomanIcon className="size-4" /></span>
                   </span>
                 </div>
 

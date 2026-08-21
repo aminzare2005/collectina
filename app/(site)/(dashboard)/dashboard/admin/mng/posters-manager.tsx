@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import {
   Dialog,
   DialogContent,
@@ -177,7 +178,7 @@ export default function PostersManager() {
                         {poster.available ? "موجود" : "ناموجود"}
                       </span>
                       {poster.available && (
-                        <span>{poster.price.toLocaleString()} تومان</span>
+                        <span className="inline-flex items-center gap-1"><span>{poster.price.toLocaleString()}</span><TomanIcon className="size-3" /></span>
                       )}
                     </div>
                   </div>
@@ -211,7 +212,7 @@ export default function PostersManager() {
             </div>
 
             <div>
-              <Label htmlFor="price">قیمت (تومان)</Label>
+              <Label htmlFor="price" className="inline-flex items-center gap-1">قیمت (<TomanIcon className="size-3" />)</Label>
               <Input
                 id="price"
                 type="number"

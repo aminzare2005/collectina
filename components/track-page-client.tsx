@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Calendar, Clock, Copy, LinkIcon } from "lucide-react";
+import { TomanIcon } from "@/components/ui/toman-icon";
 import OrderProgress from "./order-progress";
 import { Input } from "./ui/input";
 import { useState } from "react";
@@ -47,8 +48,7 @@ export default function TrackPageClient({ order }: { order: any }) {
             <div className="flex gap-4 flex-row items-start justify-between">
               <div className="flex flex-col">
                 <p className="text-xl font-bold text-primary">
-                  {new Intl.NumberFormat("fa-IR").format(order.total_amount)}{" "}
-                  تومان
+                  <span className="inline-flex items-center gap-1"><span>{new Intl.NumberFormat("fa-IR").format(order.total_amount)}</span><TomanIcon className="size-4" /></span>
                 </p>
                 <p className="text-xs flex items-center gap-1 text-muted-foreground">
                   <Calendar size={12} />
