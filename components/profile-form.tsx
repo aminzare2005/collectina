@@ -42,7 +42,7 @@ const profileSchema = z.object({
     .length(10, "کد پستی باید ۱۰ رقمی باشد")
     .regex(/^\d+$/, "کد پستی باید فقط شامل اعداد باشد"),
 
-  telegram: z.string().min(5, "یوزرنیم باید حداقل 5 کاراکتر باشه").optional(),
+  telegram: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -190,7 +190,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       return `${limited.slice(0, 4)} ${limited.slice(4)}`;
     } else {
       return `${limited.slice(0, 4)} ${limited.slice(4, 7)} ${limited.slice(
-        7
+        7,
       )}`;
     }
   };
@@ -222,7 +222,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
   // بررسی اینکه آیا همه فیلدها پر شده‌اند
   const isFormComplete = Object.values(formData).every(
-    (value) => value.trim().length > 0
+    (value) => value.trim().length > 0,
   );
 
   return (
@@ -230,10 +230,9 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       onSubmit={handleSubmit}
       className="rounded-2xl border bg-card p-6 shadow-sm space-y-6"
     >
-      <h2 className="text-lg font-semibold text-center mb-2">ویرایش پروفایل</h2>
-      <p className="text-center text-sm text-muted-foreground mb-4">
-        لطفاً اطلاعات خود را بررسی و در صورت نیاز ویرایش کنید.
-      </p>
+      <h2 className="text-lg font-semibold text-center mb-2">
+        ویرایش اطلاعات ارسال
+      </h2>
 
       <div className="grid gap-3">
         <Label htmlFor="displayName">نام و نام خانوادگی</Label>
@@ -367,7 +366,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       <Button
         type="submit"
         className="w-full rounded-xl text-base font-medium transition-all duration-200 hover:opacity-90"
-        disabled={isLoading || !isFormValid || !isFormComplete}
+        disabled={isLoading || !isFormValid}
       >
         {isLoading ? "در حال ذخیره..." : "ذخیره تغییرات"}
       </Button>

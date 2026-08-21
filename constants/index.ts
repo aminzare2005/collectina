@@ -1,6 +1,6 @@
 export const MENU_ITEMS = [
   {
-    title: "همه محصولات",
+    title: "صفحه اصلی",
     href: "/",
     new: false,
     disabled: false,

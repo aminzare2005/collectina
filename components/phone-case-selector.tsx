@@ -121,18 +121,9 @@ export function PhoneCaseSelector({
 
       toast({
         title: "به سبد اضافه شد",
-        description: "می‌تونی خریدت رو ادامه بدی یا بری سبد خرید",
-        action: (
-          <ToastAction
-            altText="مشاهده سبد"
-            onClick={() => router.push("/cart")}
-          >
-            مشاهده سبد
-          </ToastAction>
-        ),
       });
       window.dispatchEvent(new Event("cart-updated"));
-      router.refresh();
+      router.push("/cart");
     } catch (error) {
       toast({
         title: "خطا",

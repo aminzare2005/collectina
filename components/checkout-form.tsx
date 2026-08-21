@@ -287,8 +287,7 @@ export function CheckoutForm({
   requestPaymentRef.current = () => {
     if (!validateAllAndCollectErrors()) {
       toast({
-        title: "اطلاعات ناقصه",
-        description: "لطفاً فیلدهای مشخص‌شده رو درست پر کن",
+        title: "لطفاً فیلدهای مشخص‌شده رو درست پر کن",
         variant: "destructive",
       });
       return;
@@ -335,7 +334,10 @@ export function CheckoutForm({
       };
 
       setAppliedDiscount(newDiscount);
-      onDiscountChange({ discountAmount: data.discountAmount, freeShipping: data.freeShipping });
+      onDiscountChange({
+        discountAmount: data.discountAmount,
+        freeShipping: data.freeShipping,
+      });
 
       toast({
         title: "کد تخفیف اعمال شد",
@@ -570,6 +572,10 @@ export function CheckoutForm({
                   </p>
                 )}
               </div>
+              <p className="text-xs text-muted-foreground">
+                اگه کد پستی نداری، نزدیک ترین کد پستی به این آدرس رو وارد کن مثل
+                یه مغازه نزدیک یا همسایه
+              </p>
             </div>
 
             <div className="grid gap-2">
@@ -587,10 +593,6 @@ export function CheckoutForm({
                 onChange={handleFieldChange("address")}
                 onBlur={handleFieldBlur("address")}
               />
-              <p className="text-xs text-muted-foreground">
-                اگه کد پستی نداری، نزدیک ترین کد پستی به این آدرس رو وارد کن مثل
-                یه مغازه نزدیک یا همسایه
-              </p>
               {errors.address && (
                 <p className="text-sm text-destructive">{errors.address}</p>
               )}
@@ -632,8 +634,8 @@ export function CheckoutForm({
         </fieldset>
 
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3.5 py-3 text-xs leading-relaxed text-muted-foreground">
-          اگه اطلاعات رو اشتباه وارد کنی ممکنه بسته با تاخیر به دستت
-          برسه یا لازم باشه دوباره هزینه ارسال رو واریز کنی🫶🏻
+          اگه اطلاعات رو اشتباه وارد کنی ممکنه بسته با تاخیر به دستت برسه یا
+          لازم باشه دوباره هزینه ارسال رو واریز کنی🫶🏻
         </div>
 
         <div className="hidden">
@@ -695,7 +697,7 @@ export function CheckoutForm({
                 />
               </div>
               {appliedDiscount && (
-                <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+                <p className="mt-2 text-sm text-green-600">
                   {appliedDiscount.freeShipping
                     ? "ارسال رایگان اعمال شد"
                     : "تخفیف اعمال شد"}

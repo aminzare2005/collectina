@@ -17,6 +17,7 @@ import CartShippingNotice from "@/components/cart-shipping-notice";
 import CartPriceSummary from "@/components/cart-price-summary";
 import { calculateCartShipping } from "@/lib/shipping";
 import { useResizeObserverHeight } from "@/hooks/use-resize-observer-height";
+import HomeSectionHeader from "@/components/home-section-header";
 
 // ===========================
 // Types & Interfaces
@@ -194,7 +195,19 @@ export default function CartCheckoutPage() {
   if (loading) {
     return (
       <div className="max-w-xl mx-auto flex flex-col gap-4">
-        <h1 className="text-2xl font-bold">سبد خرید</h1>
+        <HomeSectionHeader
+          title="سبد خرید"
+          href="/dashboard"
+          children={
+            <Button
+              variant={"ghost"}
+              className="inline-flex items-center gap-1.5 text-sm"
+            >
+              <User2Icon className="size-4" />
+              داشبورد کاربری
+            </Button>
+          }
+        />
         {Array.from({ length: 3 }).map((_, idx) => (
           <CartItemSkeleton key={idx} />
         ))}
@@ -228,6 +241,19 @@ export default function CartCheckoutPage() {
   if (!cartItems.length) {
     return (
       <div className="max-w-xl mx-auto space-y-4">
+        <HomeSectionHeader
+          title="سبد خرید"
+          href="/dashboard"
+          children={
+            <Button
+              variant={"ghost"}
+              className="inline-flex items-center gap-1.5 text-sm"
+            >
+              <User2Icon className="size-4" />
+              داشبورد کاربری
+            </Button>
+          }
+        />
         <EmptyCommon
           title="سبد خرید شما خالی است"
           description="یه محصول جدید انتخاب کن و به سبدت اضافه کن"
@@ -235,15 +261,6 @@ export default function CartCheckoutPage() {
           buttonIcon={<ArrowLeftIcon />}
           isButton
         />
-        <div className="text-center">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <User2Icon className="size-4" />
-            داشبورد کاربری
-          </Link>
-        </div>
       </div>
     );
   }
@@ -253,16 +270,19 @@ export default function CartCheckoutPage() {
       className="max-w-xl mx-auto flex flex-col gap-8 md:max-w-none"
       style={{ paddingBottom: stickySummaryHeight }}
     >
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">سبد خرید</h1>
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <User2Icon className="size-4" />
-          داشبورد
-        </Link>
-      </div>
+      <HomeSectionHeader
+        title="سبد خرید"
+        href="/dashboard"
+        children={
+          <Button
+            variant={"ghost"}
+            className="inline-flex items-center gap-1.5 text-sm"
+          >
+            <User2Icon className="size-4" />
+            داشبورد کاربری
+          </Button>
+        }
+      />
 
       <div className="flex flex-col gap-8 md:grid md:grid-cols-2 md:items-start">
         <div className="flex min-w-0 flex-col gap-8">
