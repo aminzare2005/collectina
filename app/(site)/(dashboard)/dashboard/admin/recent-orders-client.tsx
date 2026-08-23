@@ -1,20 +1,35 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { TomanIcon } from "@/components/ui/toman-icon";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   CalendarDays,
   Copy,
-  MousePointerClick,
-  PackageCheck,
-  ShieldCheck,
-  AlertTriangle,
-  XCircle,
+  Check,
+  Loader2,
+  User,
+  Phone,
+  MapPin,
 } from "lucide-react";
+import {
+  STATUS_LABELS,
+  STATUS_BADGE_CLASSES,
+  STATUS_ICONS,
+  STATUS_TEXT_CLASSES,
+  OrderStatus,
+  toOrderStatus,
+} from "@/lib/types/order-status";
 
 export type AdminOrder = {
   id: string;
@@ -39,77 +54,21 @@ export type AdminOrder = {
     | null;
 };
 
-const statusStyles: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  paid: "bg-green-100 text-green-700",
-  outofstock: "bg-rose-100 text-rose-700",
-  processing: "bg-blue-100 text-blue-700",
-  ready: "bg-indigo-100 text-indigo-700",
-  delivered: "bg-emerald-100 text-emerald-700",
-  returned: "bg-orange-100 text-orange-700",
-  canceled: "bg-gray-200 text-gray-700",
-  refunded: "bg-teal-100 text-teal-700",
-};
-
-const statusLabels: Record<string, string> = {
-  pending: "در انتظار پرداخت",
-  paid: "پرداخت شده",
-  outofstock: "اتمام موجودی",
-  processing: "در حال پردازش",
-  ready: "آماده ارسال",
-  delivered: "ارسال شد",
-  returned: "مرجوع شده",
-  canceled: "لغو شده",
-  refunded: "بازپرداخت شده",
-};
-
-const statusAccent: Record<string, string> = {
-  pending: "from-yellow-500/10",
-  paid: "from-primary/12",
-  outofstock: "from-rose-500/12",
-  processing: "from-blue-500/12",
-  ready: "from-indigo-500/12",
-  delivered: "from-emerald-500/10",
-  returned: "from-orange-500/10",
-  canceled: "from-zinc-500/10",
-  refunded: "from-teal-500/10",
-};
-
-const statusIcon: Record<string, React.ElementType> = {
-  pending: MousePointerClick,
-  paid: ShieldCheck,
-  outofstock: AlertTriangle,
-  processing: PackageCheck,
-  ready: PackageCheck,
-  delivered: PackageCheck,
-  returned: PackageCheck,
-  canceled: XCircle,
-  refunded: ShieldCheck,
-};
+const ALL_STATUSES = Object.keys(STATUS_LABELS) as OrderStatus[];
 
 type RecentOrdersClientProps = {
   orders: AdminOrder[];
 };
 
-export default function RecentOrdersClient({
-  orders,
-}: RecentOrdersClientProps) {
+export default function RecentOrdersClient({ orders }: RecentOrdersClientProps) {
   const { toast } = useToast();
-  const hasOrders = orders.length > 0;
+  const [localOrders, setLocalOrders] = useState(orders);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
-  // UI summary lines (not the copy payload)
-  const getOrderItemLines = (order: AdminOrder) => {
-    const items = order.order_items ?? [];
-
-    return items.length > 0
-      ? items.map((item) => {
-          const model =
-            item.phone_model?.trim() || item.poster_atr?.trim() || "نامشخص";
-          const productName = item.product_name?.trim() || "نامشخص";
-          return `${model} - ${productName}`;
-        })
-      : ["نامشخص - نامشخص"];
-  };
+  // Keep in sync if parent re-renders with new orders
+  useMemo(() => {
+    setLocalOrders(orders);
+  }, [orders]);
 
   const getOrderItemPayloadLines = (order: AdminOrder) => {
     const items = order.order_items ?? [];
@@ -120,11 +79,9 @@ export default function RecentOrdersClient({
 
     return items.flatMap((item, idx) => {
       const n = idx + 1;
-
       const model =
         item.phone_model?.trim() || item.poster_atr?.trim() || "نامشخص";
       const productName = item.product_name?.trim() || "نامشخص";
-
       const imageUrl = item.products?.image_url?.trim() || "تصویر پیدا نشد";
 
       return [`${n}: ${imageUrl}`, `${model} - ${productName}`];
@@ -133,12 +90,8 @@ export default function RecentOrdersClient({
 
   const formattedOrders = useMemo(
     () =>
-      orders.map((order) => {
-        const orderItemLines = getOrderItemLines(order);
-        const orderItemSummary = orderItemLines.join("، ");
-
+      localOrders.map((order) => {
         const itemPayloadLines = getOrderItemPayloadLines(order);
-
         const receiverName = order.receiver_name ?? "نامشخص";
         const phoneNumber = order.phone_number ?? "نامشخص";
         const cityAddress = [order.shipping_city, order.shipping_address]
@@ -157,17 +110,15 @@ export default function RecentOrdersClient({
           postalCode,
         ].join("\n");
 
-        return { order, payload, orderItemLines, orderItemSummary };
+        return { order, payload };
       }),
-    [orders],
+    [localOrders],
   );
 
-  const handleCopy = async (payload: string) => {
+  const handleCopy = async (payload: string, orderId: string) => {
     try {
       await navigator.clipboard.writeText(payload);
-      toast({
-        title: "اطلاعات سفارش در کلیپ‌بورد قرار گرفت.",
-      });
+      toast({ title: "اطلاعات ارسال کپی شد ✓" });
     } catch {
       toast({
         title: "مرورگر اجازه کپی نداد.",
@@ -176,148 +127,220 @@ export default function RecentOrdersClient({
     }
   };
 
+  const handleStatusChange = useCallback(
+    async (orderId: string, newStatus: string) => {
+      setUpdatingStatus(orderId);
+      try {
+        const res = await fetch(`/api/orders/${orderId}/status`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "خطا در بروزرسانی");
+        }
+
+        setLocalOrders((prev) =>
+          prev.map((o) =>
+            o.id === orderId ? { ...o, status: newStatus } : o,
+          ),
+        );
+
+        toast({ title: `وضعیت به «${STATUS_LABELS[newStatus as OrderStatus]}» تغییر کرد` });
+      } catch (err) {
+        toast({
+          title: err instanceof Error ? err.message : "خطا در بروزرسانی وضعیت",
+          variant: "destructive",
+        });
+      } finally {
+        setUpdatingStatus(null);
+      }
+    },
+    [toast],
+  );
+
   return (
     <div className="relative overflow-hidden border-0 bg-transparent">
       <CardHeader className="relative mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
           <CardTitle className="text-lg">سفارش‌های اخیر</CardTitle>
           <p className="text-sm text-muted-foreground">
-            روی هر سفارش کلیک کن تا اطلاعات ارسال کپی شود.
+            با دکمه کپی، اطلاعات ارسال را سریع کپی کنید.
           </p>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-muted/60 ring-1 ring-border/60">
-            <MousePointerClick className="h-4 w-4" />
-          </span>
-          کلیک برای کپی
         </div>
       </CardHeader>
 
       <div className="relative px-0">
-        {!hasOrders ? (
+        {localOrders.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border/70 bg-background/40 p-8 text-center text-sm text-muted-foreground">
             هنوز سفارشی ثبت نشده است.
           </div>
         ) : (
           <div className="space-y-3">
-            {formattedOrders.map(
-              ({ order, payload, orderItemLines, orderItemSummary }) => {
-                const label =
-                  (order.status && statusLabels[order.status]) || "نامشخص";
-                const badgeStyle =
-                  (order.status && statusStyles[order.status]) ||
-                  "bg-zinc-100 text-zinc-700";
+            {formattedOrders.map(({ order, payload }) => {
+              const os = toOrderStatus(order.status);
+              const label = os ? STATUS_LABELS[os] : "نامشخص";
+              const badgeStyle = os
+                ? STATUS_BADGE_CLASSES[os]
+                : "bg-zinc-100 text-zinc-700";
+              const textStyle = os
+                ? STATUS_TEXT_CLASSES[os]
+                : "text-zinc-700";
 
-                const createdAt = new Date(order.created_at).toLocaleDateString(
-                  "fa-IR",
-                  { year: "numeric", month: "long", day: "numeric" },
-                );
+              const createdAt = new Date(order.created_at).toLocaleDateString(
+                "fa-IR",
+                { year: "numeric", month: "long", day: "numeric" },
+              );
 
-                const price = new Intl.NumberFormat("fa-IR").format(
-                  order.total_amount ?? 0,
-                );
+              const price = new Intl.NumberFormat("fa-IR").format(
+                Number(order.total_amount) || 0,
+              );
 
-                const accent =
-                  (order.status && statusAccent[order.status]) ||
-                  "from-muted/30";
+              const Icon = os ? STATUS_ICONS[os] : Copy;
+              const isUpdating = updatingStatus === order.id;
 
-                const Icon = (order.status && statusIcon[order.status]) || Copy;
-
-                return (
-                  <button
-                    key={order.id}
-                    type="button"
-                    onClick={() => handleCopy(payload)}
-                    className="group w-full text-right"
-                  >
-                    <div
-                      className={cn(
-                        "relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 p-4 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/50",
-                        "transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:border-primary/40",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
-                        // paid orders get a slightly stronger default emphasis
-                        order.status === "paid" &&
-                          "ring-1 ring-primary/20 border-primary/25",
-                      )}
-                    >
-                      {/* hover + status accent wash */}
-                      <div
+              return (
+                <div
+                  key={order.id}
+                  className={cn(
+                    "rounded-2xl border border-border bg-card p-4 transition-all duration-200",
+                    order.status === "paid" &&
+                      "ring-1 ring-primary/20 border-primary/25",
+                  )}
+                >
+                  {/* Top row: track number + status + copy button */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Status icon */}
+                      <span
                         className={cn(
-                          "pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100",
-                          "bg-gradient-to-br",
-                          accent,
-                          "via-transparent to-transparent",
+                          "inline-flex size-9 shrink-0 items-center justify-center rounded-xl",
+                          os ? STATUS_BADGE_CLASSES[os] : "bg-zinc-100 text-zinc-700",
                         )}
-                      />
+                      >
+                        <Icon className="size-4" />
+                      </span>
 
-                      <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-muted/60 ring-1 ring-border/60 transition-colors group-hover:bg-primary/10">
-                              <Icon className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
-                            </span>
-
-                            <p className="font-mono text-lg font-semibold">
-                              #{order.track_id ?? "—"}
-                            </p>
-
-                            <Badge className={cn("rounded-full", badgeStyle)}>
-                              {label}
-                            </Badge>
-
-                            <span className="ml-auto inline-flex items-center gap-2 rounded-full bg-muted/40 px-3 py-1 text-xs text-muted-foreground ring-1 ring-border/60 md:hidden">
-                              <CalendarDays className="h-4 w-4" />
-                              {createdAt}
-                            </span>
-                          </div>
-
-                          <div className="hidden items-center gap-2 text-xs text-muted-foreground md:flex">
-                            <CalendarDays className="h-4 w-4" />
-                            {createdAt}
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col items-start gap-2 md:items-end">
-                          <p
-                            dir="ltr"
-                            className="line-clamp-1 max-w-[28rem] overflow-hidden text-ellipsis text-end text-sm text-muted-foreground"
-                          >
-                            {orderItemSummary}
-                          </p>
-
-                          <p className="text-sm font-semibold inline-flex items-center gap-1"><span>{price}</span><TomanIcon className="size-3.5" /></p>
-                        </div>
+                      {/* Track number */}
+                      <div className="min-w-0">
+                        <p className="font-mono text-base font-bold truncate">
+                          #{order.track_id ?? "—"}
+                        </p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <CalendarDays className="size-3" />
+                          {createdAt}
+                        </p>
                       </div>
-
-                      <div className="relative mt-4 space-y-2 text-xs text-muted-foreground">
-                        <div className="space-y-1">
-                          {orderItemLines.map((line, index) => (
-                            <p key={`${order.id}-${index}`}>{line}</p>
-                          ))}
-                        </div>
-
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <span>
-                            {order.receiver_name ?? "نامشخص"}
-                            {" • "}
-                            {order.phone_number ?? "—"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {order.note && (
-                        <div className="bg-yellow-200 text-black text-sm mt-4 w-full p-2 rounded-md">
-                          {order.note}
-                        </div>
-                      )}
-
-                      {/* subtle bottom highlight */}
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                     </div>
-                  </button>
-                );
-              },
-            )}
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {/* Price */}
+                      <span className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold">
+                        <span>{price}</span>
+                        <TomanIcon className="size-3" />
+                      </span>
+
+                      {/* Copy button */}
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(payload, order.id)}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background px-3 py-1.5 text-xs font-medium text-foreground",
+                          "transition-all duration-150 hover:bg-accent hover:text-accent-foreground active:scale-95",
+                        )}
+                        title="کپی اطلاعات ارسال"
+                      >
+                        <Copy className="size-3.5" />
+                        <span className="hidden sm:inline">کپی</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Items summary */}
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                    {(order.order_items ?? []).map((item, i) => (
+                      <span
+                        key={item.id}
+                        className="inline-flex items-center rounded-lg bg-muted/50 px-2 py-0.5"
+                      >
+                        {item.product_name?.trim() || "نامشخص"}
+                        {item.phone_model
+                          ? ` · ${item.phone_model}`
+                          : item.poster_atr
+                            ? ` · ${item.poster_atr}`
+                            : ""}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Info row: receiver + price (mobile) + status selector */}
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1">
+                        <User className="size-3" />
+                        {order.receiver_name ?? "نامشخص"}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Phone className="size-3" />
+                        {order.phone_number ?? "—"}
+                      </span>
+                      {order.shipping_city && (
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="size-3" />
+                          {order.shipping_city}
+                        </span>
+                      )}
+                      {/* Price (mobile) */}
+                      <span className="sm:hidden inline-flex items-center gap-1 font-semibold text-foreground">
+                        <span>{price}</span>
+                        <TomanIcon className="size-3" />
+                      </span>
+                    </div>
+
+                    {/* Status selector */}
+                    <div className="flex items-center gap-2">
+                      {isUpdating && (
+                        <Loader2 className="size-3 animate-spin text-muted-foreground" />
+                      )}
+                      <Select
+                        value={os ?? "pending"}
+                        onValueChange={(val) =>
+                          handleStatusChange(order.id, val)
+                        }
+                        disabled={isUpdating}
+                      >
+                        <SelectTrigger
+                          className={cn(
+                            "h-8 w-auto min-w-[140px] rounded-lg border-border/60 text-xs font-medium",
+                            badgeStyle,
+                          )}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ALL_STATUSES.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              <span className={cn("text-xs", STATUS_TEXT_CLASSES[s])}>
+                                {STATUS_LABELS[s]}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Note */}
+                  {order.note && (
+                    <div className="mt-3 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs p-2 dark:bg-yellow-900/20 dark:border-yellow-800/40 dark:text-yellow-300">
+                      {order.note}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

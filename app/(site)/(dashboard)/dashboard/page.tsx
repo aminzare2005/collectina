@@ -17,23 +17,19 @@ import {
 import { cn } from "@/lib/utils";
 import { StatCard } from "@/components/ui/stat-card";
 import { TomanIcon } from "@/components/ui/toman-icon";
+import {
+  getStatusLabel,
+  getStatusBadgeClass,
+  getStatusIconClass,
+} from "@/lib/types/order-status";
+import type { OrderStatus } from "@/lib/types/order-status";
 
 type Order = {
   id: string;
   created_at: string;
   total_amount: number | null;
   track_id: number;
-  status:
-    | "pending"
-    | "paid"
-    | "outofstock"
-    | "processing"
-    | "ready"
-    | "delivered"
-    | "returned"
-    | "canceled"
-    | "refunded"
-    | string;
+  status: OrderStatus | string;
 };
 
 export default async function DashboardPage() {
@@ -46,11 +42,11 @@ export default async function DashboardPage() {
 
   const recentOrders = await OrderRepository.getByUserId(user.id);
 
-  const formatPrice = (v: number | null | undefined): string =>
-    new Intl.NumberFormat("fa-IR").format(v ?? 0);
+  const formatPrice = (v: number | string | null | undefined): string =>
+    new Intl.NumberFormat("fa-IR").format(Number(v) || 0);
 
   const totalSpent =
-    recentOrders?.reduce((sum, order) => sum + (order.total_amount || 0), 0) ||
+    recentOrders?.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0) ||
     0;
 
   return (
@@ -110,7 +106,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 gap-4">
           {/* Recent Orders */}
           <section>
-            <Card className="border-0 rounded-3xl overflow-hidden">
+            <Card className="overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-lg">
@@ -184,63 +180,9 @@ function OrderItem({
     minute: "2-digit",
   });
 
-  const statusStyles: Record<string, { badge: string; iconBg: string }> = {
-    pending: {
-      badge: "bg-yellow-100 text-yellow-700",
-      iconBg: "bg-yellow-100 text-yellow-600",
-    },
-    paid: {
-      badge: "bg-green-100 text-green-700",
-      iconBg: "bg-green-100 text-green-600",
-    },
-    outofstock: {
-      badge: "bg-rose-100 text-rose-700",
-      iconBg: "bg-rose-100 text-rose-600",
-    },
-    processing: {
-      badge: "bg-blue-100 text-blue-700",
-      iconBg: "bg-blue-100 text-blue-600",
-    },
-    ready: {
-      badge: "bg-indigo-100 text-indigo-700",
-      iconBg: "bg-indigo-100 text-indigo-600",
-    },
-    delivered: {
-      badge: "bg-emerald-100 text-emerald-700",
-      iconBg: "bg-emerald-100 text-emerald-600",
-    },
-    returned: {
-      badge: "bg-orange-100 text-orange-700",
-      iconBg: "bg-orange-100 text-orange-600",
-    },
-    canceled: {
-      badge: "bg-gray-200 text-gray-700",
-      iconBg: "bg-gray-200 text-gray-700",
-    },
-    refunded: {
-      badge: "bg-teal-100 text-teal-700",
-      iconBg: "bg-teal-100 text-teal-600",
-    },
-  };
-
-  const statusLabels: Record<string, string> = {
-    pending: "در انتظار پرداخت",
-    paid: "پرداخت شده",
-    outofstock: "اتمام موجودی",
-    processing: "در حال پردازش",
-    ready: "آماده ارسال",
-    delivered: "ارسال شد",
-    returned: "مرجوع شده",
-    canceled: "لغو شده",
-    refunded: "عودت وجه داده شد",
-  };
-
-  const status = order.status || "unknown";
-  const styles = statusStyles[status] ?? {
-    badge: "bg-zinc-100 text-zinc-700",
-    iconBg: "bg-zinc-100 text-zinc-700",
-  };
-  const label = statusLabels[status] ?? "نامشخص";
+  const label = getStatusLabel(order.status);
+  const badgeClass = getStatusBadgeClass(order.status);
+  const iconClass = getStatusIconClass(order.status);
 
   return (
     <div className="flex flex-col justify-between gap-4 p-4 rounded-2xl border bg-background">
@@ -254,7 +196,7 @@ function OrderItem({
               <span
                 className={cn(
                   "text-xs px-2 py-1 rounded-lg font-medium",
-                  styles.badge,
+                  badgeClass,
                 )}
               >
                 {label}

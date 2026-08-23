@@ -12,11 +12,10 @@ import type { Order } from "@/lib/types/database";
 // Helper Functions
 // ===========================
 
-const formatNumber = (n: number): string => 
+const formatNumber = (n: number): string =>
   new Intl.NumberFormat("fa-IR").format(n);
 
-const formatOrderId = (id: string): string => 
-  id.slice(0, 8).toUpperCase();
+const formatOrderId = (id: string): string => id.slice(0, 8).toUpperCase();
 
 // ===========================
 // Main Component
@@ -29,7 +28,7 @@ export default async function OrderFailedPage({
 }) {
   // Await searchParams (Next.js 15+)
   const params = await searchParams;
-  
+
   // Check authentication
   const user = await getCurrentUser();
 
@@ -103,7 +102,10 @@ export default async function OrderFailedPage({
                     <span className="text-sm text-foreground/80">مبلغ:</span>
                   </div>
                   <span className="font-bold text-foreground text-lg">
-                    <span className="inline-flex items-center gap-1"><span>{formattedTotal}</span><TomanIcon className="size-4" /></span>
+                    <span className="inline-flex items-center gap-1">
+                      <span>{formattedTotal}</span>
+                      <TomanIcon className="size-4" />
+                    </span>
                   </span>
                 </div>
 
@@ -131,13 +133,13 @@ export default async function OrderFailedPage({
             {/* Action buttons */}
             <div className="grid grid-cols-2 gap-3 pt-2">
               <Button
-                asChild
+                size={"xl"}
                 className="bg-foreground text-background shadow-md hover:shadow-lg transition-all duration-200"
               >
                 <Link href="/support">تماس با پشتیبانی</Link>
               </Button>
               <Button
-                asChild
+                size={"xl"}
                 variant="outline"
                 className="border transition-all duration-200"
               >

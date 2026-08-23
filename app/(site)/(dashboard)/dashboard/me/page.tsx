@@ -16,7 +16,7 @@ export default async function MePage() {
       <ProfileForm profile={profile} />
       {/* danger zone ? */}
       <section className="flex flex-col gap-4">
-        <Card className="bg-red-500/10 border border-red-500/20 shadow-xl rounded-xl overflow-hidden">
+        <Card className="bg-red-500/10 border-red-500/20 overflow-hidden">
           <CardContent className="text-center">
             <div className="flex items-center gap-2 justify-between">
               <div className="text-start">

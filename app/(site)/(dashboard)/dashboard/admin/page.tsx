@@ -48,7 +48,7 @@ export default async function AdminDashboardPage() {
           <div className="space-y-2">
             <h1 className="text-2xl font-bold">داشبورد ادمین</h1>
             <p className="text-sm text-muted-foreground">
-              وضعیت سفارش‌های اخیر و کپی سریع اطلاعات ارسال
+              مدیریت سفارش‌ها، تغییر وضعیت و کپی اطلاعات ارسال
             </p>
           </div>
           <Badge className="rounded-full bg-primary/10 text-primary">
@@ -57,18 +57,17 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      <Link href={"admin/mng"}>
-        <Card className="group relative overflow-hidden border border-border/60 bg-card/50 backdrop-blur supports-backdrop-filter:bg-card/50 shadow-sm transition-all duration-300 mb-4">
-          <div className="pointer-events-none absolute inset-0 opacity-30 transition-opacity duration-300 group-hover:opacity-80 bg-linear-to-br from-green-300/10 via-transparent to-transparent" />
-          <CardHeader className="relative flex flex-row items-center justify-between pb-2">
+      <Link href="admin/mng">
+        <Card className="group transition-all duration-200 hover:border-primary/30 mb-4">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               همه محصولات
             </CardTitle>
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-muted/60 ring-1 ring-border/60 transition-colors group-hover:bg-primary/10">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-muted transition-colors group-hover:bg-primary/10">
               <ShoppingBasketIcon className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
             </span>
           </CardHeader>
-          <CardContent className="relative">
+          <CardContent>
             <div className="flex items-end justify-between">
               <div className="text-3xl font-bold tracking-tight">
                 {totalProducts}
@@ -83,18 +82,16 @@ export default async function AdminDashboardPage() {
       </Link>
 
       <div className="grid gap-4 md:grid-cols-3">
-        {/* مجموع سفارش‌ها */}
-        <Card className="group relative overflow-hidden border border-border/60 bg-card/60 backdrop-blur supports-backdrop-filter:bg-card/50 shadow-sm transition-all duration-300">
-          <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-80 bg-linear-to-br from-primary/10 via-transparent to-transparent" />
-          <CardHeader className="relative flex flex-row items-center justify-between pb-2">
+        <Card className="group transition-all duration-200 hover:border-primary/30">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               مجموع سفارش‌ها
             </CardTitle>
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-muted/60 ring-1 ring-border/60 transition-colors group-hover:bg-primary/10">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-muted transition-colors group-hover:bg-primary/10">
               <ClipboardList className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
             </span>
           </CardHeader>
-          <CardContent className="relative">
+          <CardContent>
             <div className="flex items-end justify-between">
               <div className="text-3xl font-bold tracking-tight">
                 {totalOrders}
@@ -106,18 +103,16 @@ export default async function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* در حال آماده‌سازی */}
-        <Card className="group relative overflow-hidden border border-border/60 bg-card/60 backdrop-blur supports-backdrop-filter:bg-card/50 shadow-sm transition-all duration-300">
-          <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-80 bg-linear-to-br from-primary/10 via-transparent to-transparent" />
-          <CardHeader className="relative flex flex-row items-center justify-between pb-2">
+        <Card className="group transition-all duration-200 hover:border-primary/30">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               در حال آماده سازی
             </CardTitle>
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-muted/60 ring-1 ring-border/60 transition-colors group-hover:bg-muted">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-muted transition-colors group-hover:bg-muted">
               <PackageCheck className="h-5 w-5 text-muted-foreground" />
             </span>
           </CardHeader>
-          <CardContent className="relative">
+          <CardContent>
             <div className="flex items-end justify-between">
               <div className="text-3xl font-bold tracking-tight">
                 {processingOrders}
@@ -129,19 +124,16 @@ export default async function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="group relative overflow-hidden border border-border/60 bg-card/60 backdrop-blur supports-backdrop-filter:bg-card/50 shadow-sm transition-all duration-300">
-          <div className="pointer-events-none absolute inset-0 opacity-30 transition-opacity duration-300 group-hover:opacity-80 bg-linear-to-br from-red-500/10 via-transparent to-transparent" />
-          <CardHeader className="relative flex flex-row items-center justify-between pb-2">
+        <Card className="group transition-all duration-200 hover:border-red-400/40">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="flex items-center gap-2">
               <CardTitle className="text-sm font-semibold">آماده ثبت</CardTitle>
             </div>
-
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-muted/60 ring-1 ring-border/60 transition-colors group-hover:bg-muted">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-muted transition-colors group-hover:bg-muted">
               <ShieldCheck className="h-5 w-5 text-muted-foreground" />
             </span>
           </CardHeader>
-
-          <CardContent className="relative">
+          <CardContent>
             <div className="flex items-end justify-between">
               <div className="text-3xl font-bold flex gap-1 items-center tracking-tight text-foreground">
                 {paidOrders}

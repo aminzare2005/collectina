@@ -3,11 +3,7 @@ import { OrderRepository } from "@/lib/repositories";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import {
-  CheckCircle2,
-  Package,
-  CreditCard,
-} from "lucide-react";
+import { CheckCircle2, Package, CreditCard } from "lucide-react";
 import { redirect } from "next/navigation";
 import { TomanIcon } from "@/components/ui/toman-icon";
 import { Order } from "@/lib/types/database";
@@ -16,7 +12,7 @@ import { Order } from "@/lib/types/database";
 // Helper Functions
 // ===========================
 
-const formatNumber = (n: number): string => 
+const formatNumber = (n: number): string =>
   new Intl.NumberFormat("fa-IR").format(n);
 
 // ===========================
@@ -30,7 +26,7 @@ export default async function OrderSuccessPage({
 }) {
   // Await searchParams (Next.js 15+)
   const params = await searchParams;
-  
+
   // Check authentication
   const user = await getCurrentUser();
 
@@ -107,7 +103,10 @@ export default async function OrderSuccessPage({
                     </span>
                   </div>
                   <span className="font-bold text-foreground text-lg">
-                    <span className="inline-flex items-center gap-1"><span>{formattedTotal}</span><TomanIcon className="size-4" /></span>
+                    <span className="inline-flex items-center gap-1">
+                      <span>{formattedTotal}</span>
+                      <TomanIcon className="size-4" />
+                    </span>
                   </span>
                 </div>
               </div>
@@ -121,8 +120,9 @@ export default async function OrderSuccessPage({
                 className="w-full"
               >
                 <Button
-                  variant={"outline"}
-                  className="flex gap-1 items-center w-full text-white from-indigo-600 to-violet-600 bg-gradient-to-br"
+                  size={"xl"}
+                  variant={"secondary"}
+                  className="flex gap-1 items-center w-full text-white hover:brightness-90 from-indigo-600 to-violet-600 bg-gradient-to-br"
                 >
                   پـیــگیری ســفارش
                   <div className="bg-white/20 text-white border rounded-lg flex items-center gap-1 px-1.5 animate-pulse">
@@ -132,7 +132,7 @@ export default async function OrderSuccessPage({
                 </Button>
               </Link>
               <Link href="/" className="w-full">
-                <Button variant="outline" className="w-full">
+                <Button size={'xl'} variant="outline" className="w-full">
                   بازگشت به فروشگاه
                 </Button>
               </Link>
