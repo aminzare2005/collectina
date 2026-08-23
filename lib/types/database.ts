@@ -16,6 +16,7 @@ export type DiscountType = "percentage" | "fixed" | "free_shipping";
 
 export type OrderStatus =
   | "pending"
+  | "pending_card_verification"
   | "paid"
   | "outofstock"
   | "processing"

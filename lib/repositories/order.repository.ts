@@ -25,9 +25,12 @@ export const OrderRepository = {
     status: string;
     track_id: number;
     track_post_id: string | null;
+    total_amount: number | string;
     created_at: string;
     updated_at: string;
-    order_items: OrderItem[];
+    order_items: (OrderItem & {
+      products: { image_url: string | null; type: string | null } | null;
+    })[];
   } | null> {
     const rows = await sql<
       {
@@ -35,17 +38,38 @@ export const OrderRepository = {
         status: string;
         track_id: number;
         track_post_id: string | null;
+        total_amount: number | string;
         created_at: string;
         updated_at: string;
-        order_items: OrderItem[];
+        order_items: (OrderItem & {
+          products: { image_url: string | null; type: string | null } | null;
+        })[];
       }[]
     >`
       SELECT
         o.id, o.status, o.track_id, o.track_post_id,
-        o.created_at, o.updated_at,
+        o.total_amount, o.created_at, o.updated_at,
         COALESCE(
-          (SELECT json_agg(oi.*)
+          (SELECT json_agg(json_build_object(
+            'id', oi.id,
+            'order_id', oi.order_id,
+            'product_id', oi.product_id,
+            'product_name', oi.product_name,
+            'product_price', oi.product_price,
+            'quantity', oi.quantity,
+            'created_at', oi.created_at,
+            'phone_case_id', oi.phone_case_id,
+            'phone_brand', oi.phone_brand,
+            'phone_model', oi.phone_model,
+            'poster_atr', oi.poster_atr,
+            'poster_id', oi.poster_id,
+            'products', json_build_object(
+              'image_url', p.image_url,
+              'type', p.type
+            )
+          ))
            FROM order_items oi
+           LEFT JOIN products p ON p.id = oi.product_id
            WHERE oi.order_id = o.id),
           '[]'::json
         ) AS order_items
@@ -89,14 +113,45 @@ export const OrderRepository = {
 
   /**
    * Get all orders with items (admin page).
+   * Includes product image_url + type via LEFT JOIN on products.
    */
-  async getAllWithItems(limit = 50, offset = 0): Promise<OrderWithItems[]> {
-    return sql<OrderWithItems[]>`
+  async getAllWithItems(limit = 50, offset = 0): Promise<
+    (OrderWithItems & {
+      order_items: (OrderItem & {
+        products: { image_url: string | null; type: string | null } | null;
+      })[];
+    })[]
+  > {
+    return sql<
+      (OrderWithItems & {
+        order_items: (OrderItem & {
+          products: { image_url: string | null; type: string | null } | null;
+        })[];
+      })[]
+    >`
       SELECT
         o.*,
         COALESCE(
-          (SELECT json_agg(oi.*)
+          (SELECT json_agg(json_build_object(
+            'id', oi.id,
+            'order_id', oi.order_id,
+            'product_id', oi.product_id,
+            'product_name', oi.product_name,
+            'product_price', oi.product_price,
+            'quantity', oi.quantity,
+            'created_at', oi.created_at,
+            'phone_case_id', oi.phone_case_id,
+            'phone_brand', oi.phone_brand,
+            'phone_model', oi.phone_model,
+            'poster_atr', oi.poster_atr,
+            'poster_id', oi.poster_id,
+            'products', json_build_object(
+              'image_url', p.image_url,
+              'type', p.type
+            )
+          ))
            FROM order_items oi
+           LEFT JOIN products p ON p.id = oi.product_id
            WHERE oi.order_id = o.id),
           '[]'::json
         ) AS order_items
@@ -196,7 +251,7 @@ export const OrderRepository = {
   // ---- Order Items ----
 
   /**
-   * Create order items (batch insert).
+   * Create order items (individual parameterized inserts).
    */
   async createItems(
     orderId: string,
@@ -214,19 +269,24 @@ export const OrderRepository = {
   ): Promise<OrderItem[]> {
     if (items.length === 0) return [];
 
-    // Build batch insert
-    const values = items
-      .map(
-        (item) =>
-          `('${orderId}', '${item.product_id}', '${item.product_name.replace(/'/g, "''")}', ${item.product_price}, ${item.quantity}, ${item.phone_case_id ? `'${item.phone_case_id}'` : "NULL"}, ${item.phone_brand ? `'${item.phone_brand.replace(/'/g, "''")}'` : "NULL"}, ${item.phone_model ? `'${item.phone_model.replace(/'/g, "''")}'` : "NULL"}, ${item.poster_atr ? `'${item.poster_atr.replace(/'/g, "''")}'` : "NULL"}, ${item.poster_id ? `'${item.poster_id}'` : "NULL"})`,
-      )
-      .join(", ");
-
-    return sql<OrderItem[]>`
-      INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity, phone_case_id, phone_brand, phone_model, poster_atr, poster_id)
-      SELECT * FROM (VALUES ${sql.unsafe(values)}) AS v(order_id, product_id, product_name, product_price, quantity, phone_case_id, phone_brand, phone_model, poster_atr, poster_id)
-      RETURNING *
-    `;
+    const results: OrderItem[] = [];
+    for (const item of items) {
+      const rows = await sql<OrderItem[]>`
+        INSERT INTO order_items (
+          order_id, product_id, product_name, product_price, quantity,
+          phone_case_id, phone_brand, phone_model, poster_atr, poster_id
+        ) VALUES (
+          ${orderId}::uuid, ${item.product_id}::uuid, ${item.product_name},
+          ${item.product_price}, ${item.quantity},
+          ${item.phone_case_id ?? null}::uuid, ${item.phone_brand ?? null},
+          ${item.phone_model ?? null}, ${item.poster_atr ?? null},
+          ${item.poster_id ?? null}::uuid
+        )
+        RETURNING *
+      `;
+      if (rows[0]) results.push(rows[0]);
+    }
+    return results;
   },
 
   /**
