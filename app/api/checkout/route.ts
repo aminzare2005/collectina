@@ -6,6 +6,7 @@ import {
   OrderRepository,
   UserRepository,
 } from "@/lib/repositories";
+import { getPaymentRegistry } from "@/lib/payments";
 
 /**
  * POST /api/checkout
@@ -42,6 +43,7 @@ export async function POST(request: NextRequest) {
       postalCode,
       telegram,
       discountCode,
+      gateway,
     } = body;
 
     // 1. Fetch cart items with full details
@@ -183,36 +185,41 @@ export async function POST(request: NextRequest) {
       await DiscountRepository.recordUsage(discountId, user.id, order.id);
     }
 
-    // 8. Initiate payment
-    const paymentRes = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/payment/request`,
+    // 8. Initiate payment using the gateway system
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      return NextResponse.json({ error: "App URL is not configured" }, { status: 500 });
+    }
+
+    const callbackUrl = `${appUrl}/api/payment/verify?orderId=${encodeURIComponent(order.id)}`;
+    const registry = getPaymentRegistry();
+
+    const paymentResult = await registry.createRequest(
       {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: order.id,
-          amount: finalTotal,
-        }),
+        orderId: order.id,
+        amountInToman: finalTotal,
+        callbackUrl,
+        description: `پرداخت سفارش ${order.id}`,
       },
+      gateway, // Optional: user-selected gateway
     );
 
-    const paymentData = await paymentRes.json();
-
-    if (paymentData.success && paymentData.trackId) {
-      await OrderRepository.updatePaymentReference(order.id, paymentData.trackId);
+    if (paymentResult.success && paymentResult.trackId) {
+      // For card-to-card, don't store payment reference (no external payment)
+      if (gateway !== "card-to-card") {
+        await OrderRepository.updatePaymentReference(order.id, paymentResult.trackId);
+      }
 
       return NextResponse.json({
         success: true,
         orderId: order.id,
-        trackId: paymentData.trackId,
-        paymentStartUrl:
-          paymentData.paymentStartUrl ||
-          `https://gateway.zibal.ir/start/${paymentData.trackId}`,
+        trackId: paymentResult.trackId,
+        paymentStartUrl: paymentResult.paymentUrl,
       });
     }
 
     return NextResponse.json(
-      { error: "خطا در ایجاد درگاه پرداخت" },
+      { error: paymentResult.message || "خطا در ایجاد درگاه پرداخت" },
       { status: 500 },
     );
   } catch (error) {

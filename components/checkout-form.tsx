@@ -34,6 +34,8 @@ import {
 import { Profile } from "@/lib/types/database";
 import { cn } from "@/lib/utils";
 import type { ShippableProductType } from "@/lib/shipping";
+import { PaymentMethodSelector } from "./payment-method-selector";
+import { Wallet } from "lucide-react";
 
 export type CheckoutFormControls = {
   /** اعتبارسنجی؛ در صورت خطا اسکرول به اولین فیلد، وگرنه باز کردن تأیید پرداخت */
@@ -178,6 +180,8 @@ export function CheckoutForm({
     postalCode: profile?.postal_code || "",
     telegram: profile?.telegram || "",
   });
+
+  const [selectedGateway, setSelectedGateway] = useState("");
 
   const [discountCode, setDiscountCode] = useState("");
   const [discountLoading, setDiscountLoading] = useState(false);
@@ -377,6 +381,7 @@ export function CheckoutForm({
           postalCode: validatedData.postalCode,
           telegram: validatedData.telegram || "",
           discountCode: appliedDiscount ? discountCode : undefined,
+          gateway: selectedGateway || undefined,
           total,
         }),
       });
@@ -638,6 +643,17 @@ export function CheckoutForm({
           لازم باشه دوباره هزینه ارسال رو واریز کنی🫶🏻
         </div>
 
+        <fieldset className="space-y-3">
+          <legend className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Wallet className="size-4 text-muted-foreground" />
+            روش پرداخت
+          </legend>
+          <PaymentMethodSelector
+            value={selectedGateway}
+            onChange={setSelectedGateway}
+          />
+        </fieldset>
+
         <div className="hidden">
           <Button
             type="submit"
@@ -669,7 +685,7 @@ export function CheckoutForm({
             <AccordionTrigger className="px-3 py-3 text-sm font-medium hover:no-underline">
               <span className="inline-flex items-center gap-2">
                 <Tag className="size-4 text-muted-foreground" />
-                کد تخفیف دارم
+                کد تخفیف داری؟
               </span>
             </AccordionTrigger>
             <AccordionContent className="px-3 pb-3">
@@ -733,8 +749,8 @@ export function CheckoutForm({
 
             <ul className="grid gap-2">
               {hasPoster && (
-                <li className="flex items-center gap-3 rounded-xl border border-border/60 px-3 py-2.5">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-background">
+                <li className="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
                     <ImageIcon
                       className="size-4 text-foreground/80"
                       aria-hidden
@@ -749,8 +765,8 @@ export function CheckoutForm({
                 </li>
               )}
               {hasPhonecase && (
-                <li className="flex items-center gap-3 rounded-xl border border-border/60 px-3 py-2.5">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-background">
+                <li className="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
                     <Smartphone
                       className="size-4 text-foreground/80"
                       aria-hidden
@@ -766,8 +782,8 @@ export function CheckoutForm({
                   </div>
                 </li>
               )}
-              <li className="flex items-center gap-3 rounded-xl border border-border/60 px-3 py-2.5">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-background">
+              <li className="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
                   <Truck className="size-4 text-foreground/80" aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1 text-start">

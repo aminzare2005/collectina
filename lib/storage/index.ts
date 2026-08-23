@@ -31,4 +31,24 @@ export function getStorageProvider(): StorageProvider {
   return _provider;
 }
 
+let _tempProvider: StorageProvider | null = null;
+
+/**
+ * Get storage provider for temporary uploads (e.g., card-to-card receipts).
+ * Uses S3_TEMP_BUCKET env var if set, otherwise falls back to main bucket.
+ */
+export function getTempStorageProvider(): StorageProvider {
+  if (_tempProvider) return _tempProvider;
+
+  const tempBucket = process.env.S3_TEMP_BUCKET;
+  if (tempBucket && process.env.S3_ENDPOINT && process.env.S3_ACCESS_KEY) {
+    _tempProvider = new S3StorageProvider(tempBucket);
+  } else {
+    // Fallback to main storage provider
+    _tempProvider = getStorageProvider();
+  }
+
+  return _tempProvider;
+}
+
 export type { StorageProvider } from "./types";

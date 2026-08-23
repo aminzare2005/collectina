@@ -29,12 +29,12 @@ export class S3StorageProvider implements StorageProvider {
   private bucket: string;
   private publicBaseUrl: string;
 
-  constructor() {
+  constructor(bucketOverride?: string) {
     const endpoint = process.env.S3_ENDPOINT;
     const region = process.env.S3_REGION ?? "default";
     const accessKeyId = process.env.S3_ACCESS_KEY;
     const secretAccessKey = process.env.S3_SECRET_KEY;
-    const bucket = process.env.S3_BUCKET;
+    const bucket = bucketOverride ?? process.env.S3_BUCKET;
 
     if (!endpoint || !accessKeyId || !secretAccessKey || !bucket) {
       throw new Error(

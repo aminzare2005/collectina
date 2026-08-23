@@ -1,60 +1,53 @@
+/**
+ * @deprecated This file is kept for backward compatibility.
+ * Use the new payment gateway system from @/lib/payments instead.
+ */
+
+import { getPaymentRegistry } from "./payments";
+
 type ZibalProxyResponse = {
-  ok: boolean
-  result?: number | null
-  trackId?: number | null
-  message?: string | null
-  zibal?: Record<string, unknown> | null
-}
+  ok: boolean;
+  result?: number | null;
+  trackId?: number | null;
+  message?: string | null;
+  zibal?: Record<string, unknown> | null;
+};
 
-function getProxyConfig() {
-  const baseUrl = process.env.ZIBAL_PROXY_URL
-  const secret = process.env.ZIBAL_PROXY_SECRET
-
-  if (!baseUrl || !secret) {
-    throw new Error("ZIBAL_PROXY_URL and ZIBAL_PROXY_SECRET must be configured")
-  }
-
-  return { baseUrl: baseUrl.replace(/\/$/, ""), secret }
-}
-
-async function callZibalProxy(
-  endpoint: "request" | "verify",
-  body: Record<string, unknown>,
-): Promise<ZibalProxyResponse> {
-  const { baseUrl, secret } = getProxyConfig()
-
-  const response = await fetch(`${baseUrl}/zibal-${endpoint}.php`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Proxy-Secret": secret,
-    },
-    body: JSON.stringify(body),
-  })
-
-  const data = (await response.json()) as ZibalProxyResponse
-
-  if (!response.ok) {
-    throw new Error(data.message || `Zibal proxy ${endpoint} failed`)
-  }
-
-  return data
-}
-
+/**
+ * @deprecated Use getPaymentRegistry().createRequest() instead
+ */
 export async function createZibalPaymentRequest(input: {
-  orderId: string
-  amountInRials: number
-  callbackUrl: string
-  description: string
-}) {
-  return callZibalProxy("request", {
+  orderId: string;
+  amountInRials: number;
+  callbackUrl: string;
+  description: string;
+}): Promise<ZibalProxyResponse> {
+  const registry = getPaymentRegistry();
+  const result = await registry.createRequest({
     orderId: input.orderId,
-    amount: input.amountInRials,
+    amountInToman: input.amountInRials / 10, // Convert Rials back to Toman
     callbackUrl: input.callbackUrl,
     description: input.description,
-  })
+  });
+
+  return {
+    ok: result.success,
+    result: result.success ? 100 : null,
+    trackId: result.trackId ? parseInt(result.trackId, 10) : null,
+    message: result.message,
+  };
 }
 
-export async function verifyZibalPayment(trackId: string) {
-  return callZibalProxy("verify", { trackId })
+/**
+ * @deprecated Use getPaymentRegistry().verify() instead
+ */
+export async function verifyZibalPayment(trackId: string): Promise<ZibalProxyResponse> {
+  const registry = getPaymentRegistry();
+  const result = await registry.verify({ trackId });
+
+  return {
+    ok: result.verified,
+    result: result.verified ? 100 : null,
+    message: result.message,
+  };
 }
