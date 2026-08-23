@@ -23,7 +23,7 @@ Current version: 2.5.0 (package.json `version`; git tags mirror releases as `2.5
 | Styling          | Tailwind CSS v4 (`@import "tailwindcss"` in `app/globals.css`), `tw-animate-css`, shadcn/ui (new-york style) |
 | UI primitives    | Radix UI via `components/ui/*` (shadcn), `lucide-react` icons                                                |
 | Backend/DB/Auth  | PostgreSQL (via `postgres`/postgres.js), Better Auth (phone+password) |
-| Payments         | Zibal (زیبال) Iranian gateway, reached **through a PHP proxy** (see Payment section)                         |
+| Payments         | Modular gateway system (`lib/payments/`): Zibal (direct API), extensible to PayPing, card-to-card, etc.       |
 | Hosting          | Vercel (`.vercel/`) and/or Liara (`liara.json`)                                                              |
 | Animation        | framer-motion, embla-carousel, swiper                                                                        |
 | Forms/validation | zod (used directly in checkout), react-hook-form (installed, not used in checkout)                           |
@@ -56,6 +56,7 @@ app/
     phonecase/[id]/page.tsx, poster/[id]/page.tsx  # Product detail (server) → selectors
     phonecase/custom/page.tsx, poster/custom/page.tsx  # Admin-only custom upload pages
     about/, support/        # Static content
+    card-to-card/[orderId]/ # Card-to-card payment page (two-step: details → receipt upload)
   (site)/(dashboard)/       # Auth-required; layout has its own header w/ user info
     dashboard/page.tsx      # User dashboard: stats + order list
     dashboard/me/page.tsx   # Profile form + logout
@@ -75,12 +76,14 @@ app/
     settings/              # Public settings
     upload/                # Image upload via StorageProvider
     admin/                 # Admin CRUD (products, phone-cases, posters, settings)
-    payment/request|start|verify  # Payment flow routes (see Payment section)
+    payment/request|start|verify|gateways|card-details|upload-receipt  # Payment flow routes (see Payment section)
+    orders/[orderId]/|status/   # Order detail + status update (card-to-card flow)
 components/
   ui/                       # shadcn/ui primitives (button, dialog, select, toast, …)
   product/                  # product-detail-shell, product-purchase-dock, product-visual-stage, …
   header.tsx                # Fixed pill header, hamburger menu, live cart badge (listens to "cart-updated" event)
   checkout-form.tsx         # THE checkout core (validation, discount, order creation, payment)
+  payment-method-selector.tsx  # Gateway selector UI in checkout (radio cards)
   cart-item.tsx, cart-price-summary.tsx, cart-shipping-notice.tsx, cart-poster-suggestion.tsx
   phonecase-grid.tsx, poster-grid.tsx     # Infinite-scroll grids (feed=true, ordered by pin, created_at)
   phonecaseCard.tsx, poster-card.tsx      # Product images; cards render without link when no href
@@ -99,14 +102,20 @@ lib/
   auth-helpers.ts           # getCurrentUser(), isAdmin(), requireAuth() for server code
   repositories/             # Typed SQL query modules (Product, Variant, Cart, Order, User, Discount, Settings)
   storage/                  # StorageProvider interface + S3StorageProvider (+ optional SupabaseStorageProvider fallback)
+  payments/                 # Modular payment gateway system (see Payment section)
+    types.ts                # PaymentGateway interface + shared types
+    registry.ts             # PaymentRegistry: manages gateways, singleton access
+    gateways/               # Gateway implementations
+      zibal.ts              # Zibal direct API integration
   types/database.ts         # TS interfaces: all tables + composite types (strict, matches schema.sql)
+  types/order-status.ts     # Single source of truth: OrderStatus type + labels, badge classes, icons, timeline steps
   shipping.ts               # Shipping groups: poster + phonecase = 2 shipments, fee per group
-  zibal-proxy.ts            # Calls the PHP proxy (ZIBAL_PROXY_URL + X-Proxy-Secret header)
+  zibal-proxy.ts            # [DEPRECATED] Legacy proxy wrapper, now uses gateway system
   utils.ts                  # cn() helper
 constants/index.ts          # MENU_ITEMS nav list
 helpers/should-i-render.ts  # Reads settings (show_poster, show_phonecase, top_banner)
 hooks/                      # use-logout, use-phone-formatter, use-resize-observer-height, use-toast
-server/payment-proxy/       # PHP files to deploy to cPanel (see docs/zibal-proxy-setup.md)
+server/payment-proxy/       # [DEPRECATED] Legacy PHP proxy files (no longer needed)
 scripts/schema-complete.sql   # SINGLE FILE — run this on fresh PostgreSQL (creates everything)
 scripts/migrations/           # Incremental SQL for the production DB (e.g. 2026-08-20-product-feed-index.sql)
 docs/zibal-proxy-setup.md   # Full Zibal proxy architecture doc (Persian)
@@ -127,26 +136,57 @@ proxy.ts                    # Next.js proxy (middleware equivalent) — session 
   `useSession()` from `@/lib/auth-client`.
 
 
-## Payment Flow (Zibal via PHP proxy)
+## Payment Flow (Modular Gateway System)
 
-**Why a proxy:** the merchant's Zibal account requires an IP-whitelisted backend. The app on
-Vercel/Liara has no fixed IP, so it calls a fixed-IP cPanel server (`fetchme.ir`) that forwards
-to Zibal. Full details + cPanel deploy steps in `docs/zibal-proxy-setup.md`.
+The payment system uses a modular gateway architecture (`lib/payments/`) that supports multiple
+Iranian payment gateways. Currently implemented: **Zibal** (direct API, no proxy needed).
 
-Flow (all initiated from `components/checkout-form.tsx`):
+### Architecture
+
+```
+lib/payments/
+  types.ts              # PaymentGateway interface + shared types
+  registry.ts           # PaymentRegistry: manages gateways, singleton access
+  gateways/
+    types.ts            # Same types (re-exported)
+    zibal.ts            # Zibal direct API integration
+    index.ts            # Gateway exports
+  index.ts              # Module entry point
+```
+
+### Adding a New Gateway
+
+1. Create `lib/payments/gateways/payping.ts` implementing `PaymentGateway` interface
+2. Export `createPayPingGateway()` factory function
+3. Register in `lib/payments/registry.ts` `initializeGateways()`
+4. Add env vars (e.g., `PAYPING_MERCHANT_ID`)
+
+### Flow (all initiated from `components/checkout-form.tsx`)
 
 1. User fills shipping form (zod-validated: Persian name/city, 11-digit `09…` phone, 10-digit postal code, address, optional telegram).
 2. Discount code (optional) validated client-side against `discounts` + `discount_usages` tables.
-3. On submit: creates `orders` row (`status='pending'`) + `order_items` rows, updates `profiles`, then
-   `POST /api/payment/request` with `{ orderId, amount }` (amount in **Toman**).
-4. `app/api/payment/request/route.ts` → `amount * 10` (Rials) → `lib/zibal-proxy.ts`
-   → `POST {ZIBAL_PROXY_URL}/zibal-request.php` with header `X-Proxy-Secret`.
-5. On `result === 100`, returns `paymentStartUrl` → `GET /api/payment/start?trackId=…` which
-   **302-redirects** to `https://gateway.zibal.ir/start/{trackId}` (Referer stays `collectina.ir`).
+3. On submit: `POST /api/checkout` → creates `orders` row (`status='pending'`) + `order_items` rows,
+   updates `profiles`, then calls `registry.createRequest()` directly (no internal API call).
+4. `getPaymentRegistry().createRequest()` → `ZibalGateway.createRequest()`
+   → `POST https://gateway.zibal.ir/v1/request` with `{ merchant, amount (Rials), callbackUrl, orderId }`.
+5. On `result === 100`, returns `paymentUrl` → user redirects to `https://gateway.zibal.ir/start/{trackId}`.
 6. Zibal redirects the browser back to `{NEXT_PUBLIC_APP_URL}/api/payment/verify?success=1&trackId=…&orderId=…`.
-7. `app/api/payment/verify/route.ts` verifies via `zibal-verify.php`; on success sets order
-   `status='paid'`, deletes the user's `cart_items`, redirects to `/order-success?orderId=…`;
-   otherwise `/order-failed?orderId=…`.
+7. `app/api/payment/verify/route.ts` → `registry.verify()` → `ZibalGateway.verify()`
+   → `POST https://gateway.zibal.ir/v1/verify`; on success sets order `status='paid'`,
+   deletes cart, redirects to `/order-success?orderId=…`; otherwise `/order-failed?orderId=…`.
+
+### Environment Variables
+
+```env
+ZIBAL_MERCHANT_ID=      # Required: Your Zibal merchant ID
+ZIBAL_SANDBOX=true      # Optional: Use Zibal sandbox for testing
+NEXT_PUBLIC_APP_URL=https://collectina.ir  # Used for callback URLs
+```
+
+### Legacy Proxy Support
+
+The old PHP proxy solution (`lib/zibal-proxy.ts`) is deprecated but kept for backward compatibility.
+It now wraps the new gateway system. The `server/payment-proxy/` files are no longer needed.
 
 Note: the Zibal **trackId** is stored in `orders.payment_reference` (written by checkout).
 `orders.track_id` is a separate int4 used as the user-facing order number (`#…`) but is **never
@@ -210,7 +250,10 @@ Known quirks (all documented in schema.sql):
   name (that's why `profiles.display_name` is nullable; the UI reads display name from auth
   user_metadata instead).
 
-**Order statuses** (used across dashboard, track page, order-progress): `pending`, `paid`,
+**Order statuses** (used across dashboard, track page, order-progress, admin):
+All status labels, badge classes, icons, and timeline steps are centralized in
+`lib/types/order-status.ts`. Consumers import from there instead of maintaining
+duplicate maps. Statuses: `pending`, `pending_card_verification`, `paid`,
 `outofstock`, `processing`, `ready`, `delivered`, `returned`, `canceled`, `refunded`.
 
 ## Shipping Model
@@ -244,11 +287,13 @@ S3_PUBLIC_URL=                 # public CDN URL for serving images
 NEXT_PUBLIC_SUPABASE_URL=      # only needed if S3 not configured yet
 NEXT_PUBLIC_SUPABASE_ANON_KEY= # only needed if S3 not configured yet
 
-# === Application (unchanged) ===
+# === Application ===
 NEXT_PUBLIC_APP_URL=https://collectina.ir
-ZIBAL_PROXY_URL=https://fetchme.ir/collectina
-ZIBAL_PROXY_SECRET=            # must match server/payment-proxy/config.php
 NEXT_PUBLIC_ADMIN_PHONE_NUMBER=  # phone number (09…) whose user is the admin
+
+# === Payment Gateway (Zibal) ===
+ZIBAL_MERCHANT_ID=              # Required: Your Zibal merchant ID
+ZIBAL_SANDBOX=true              # Optional: Use Zibal sandbox for testing
 ```
 
 `.env` is gitignored; there is a local `.env` in the repo root (not committed).
@@ -270,6 +315,7 @@ NEXT_PUBLIC_ADMIN_PHONE_NUMBER=  # phone number (09…) whose user is the admin
   `quality={40|75}` explicitly and use small intrinsic sizes.
 - shadcn/ui components live in `components/ui/`; regenerate with `npx shadcn@latest add <name>`.
   `components.json` aliases: `@/components`, `@/lib`, `@/hooks`, `@/components/ui`.
+- **Card style**: `components/ui/card.tsx` has a minimal base style (`rounded-2xl border border-border bg-card shadow-none`). All cards across the app use this. To override (e.g. track page cards that need `bg-white` or `shadow-sm`), pass className overrides. Intentionally different cards (e.g. product-purchase-dock, banner) use custom div styling.
 - Server components use `getCurrentUser()` from `@/lib/auth-helpers` and repositories from
   `@/lib/repositories/`. Client components use `useSession()` from `@/lib/auth-client`.
   Interactive components POST to Route Handlers (not directly to the DB).
