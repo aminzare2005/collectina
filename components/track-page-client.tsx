@@ -2,180 +2,251 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Calendar, Clock, Copy, LinkIcon } from "lucide-react";
+import { Calendar, Clock, Copy, LinkIcon, Package } from "lucide-react";
 import { TomanIcon } from "@/components/ui/toman-icon";
 import OrderProgress from "./order-progress";
-import { Input } from "./ui/input";
-import { useState } from "react";
-import { Button } from "./ui/button";
-import { Label } from "./ui/label";
-import { useToast } from "@/hooks/use-toast";
-import Link from "next/link";
 import PhonecaseCard from "./phonecaseCard";
 import PosterCard from "./poster-card";
+import { Input } from "./ui/input";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
+import {
+  getStatusLabel,
+  getStatusBadgeClass,
+  toOrderStatus,
+} from "@/lib/types/order-status";
+
+type OrderItem = {
+  id: string;
+  product_name: string;
+  product_price: number | string;
+  quantity: number;
+  phone_brand: string | null;
+  phone_model: string | null;
+  poster_atr: string | null;
+  products: { image_url: string | null; type: string | null } | null;
+};
 
 export default function TrackPageClient({ order }: { order: any }) {
-  const statusLabels: Record<string, string> = {
-    pending: "در انتظار پرداخت",
-    paid: "پرداخت شده",
-    outofstock: "اتمام موجودی",
-    processing: "در حال پردازش",
-    ready: "آماده ارسال",
-    delivered: "ارسال شد",
-    returned: "مرجوع شده",
-    canceled: "لغو شده",
-    refunded: "بازپرداخت شده",
-  };
   const [postTrackId, setPostTrackId] = useState(order.track_post_id);
   const { toast } = useToast();
+  const items: OrderItem[] = order.order_items ?? [];
+  const os = toOrderStatus(order.status);
+  const totalPrice = Number(order.total_amount) || 0;
 
-  function CopyCode() {
+  function copyPostTrack() {
     navigator.clipboard.writeText(postTrackId);
-    toast({
-      title: "کد پیگیری پست کپی شد!",
-    });
+    toast({ title: "کد پیگیری پست کپی شد!" });
   }
 
   return (
-    <>
-      <div className="absolute top-0 left-0 right-0 bg-linear-to-b from-black/20 opacity-80 animate-pulse to-background h-96 -z-50" />
-      <div className="p-4 md:p-6 animate-in fade-in duration-300 w-full">
-        <Card
-          key={order.id}
-          className="overflow-hidden shadow-none! bg-transparent! p-2! border-0"
-        >
-          <CardContent className="p-4">
-            <div className="flex gap-4 flex-row items-start justify-between">
-              <div className="flex flex-col">
-                <p className="text-xl font-bold text-primary">
-                  <span className="inline-flex items-center gap-1"><span>{new Intl.NumberFormat("fa-IR").format(order.total_amount)}</span><TomanIcon className="size-4" /></span>
-                </p>
-                <p className="text-xs flex items-center gap-1 text-muted-foreground">
-                  <Calendar size={12} />
-                  {new Date(order.created_at).toLocaleDateString("fa-IR", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                  <span></span>
-                  <Clock size={12} />
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(order.created_at).toLocaleTimeString("fa-IR", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </p>
-              </div>
-
-              <div className="flex flex-col items-end gap-1">
-                <p
-                  dir="ltr"
-                  className="text-xl uppercase font-semibold font-mono"
-                >
-                  #{order?.track_id}
-                </p>
-                <span
-                  className={cn("text-xs px-2 py-1 rounded-lg font-bold", {
-                    "bg-yellow-100 text-yellow-700": order.status === "pending",
-                    "bg-green-100 text-green-700": order.status === "paid",
-                    "bg-rose-100 text-rose-700": order.status === "outofstock",
-                    "bg-blue-100 text-blue-700": order.status === "processing",
-                    "bg-indigo-100 text-indigo-700": order.status === "ready",
-                    "bg-emerald-100 text-emerald-700":
-                      order.status === "delivered",
-                    "bg-orange-100 text-orange-700":
-                      order.status === "returned",
-                    "bg-gray-200 text-gray-700": order.status === "canceled",
-                    "bg-teal-100 text-teal-700": order.status === "refunded",
-                  })}
-                >
-                  {statusLabels[order.status] ?? "نامشخص"}
-                </span>
-              </div>
-            </div>
-
-            {order.status === "delivered" && (
-              <div className="p-4 from-indigo-400 to-violet-500 bg-linear-to-br rounded-xl flex items-center flex-col gap-2">
-                <Label className="text-xl">کد پیگیری پست</Label>
-                <div className="w-full flex justify-center items-center gap-2">
-                  <Input
-                    id="post_track_id"
-                    type="text"
-                    placeholder="کد پیگیری پست"
-                    readOnly
-                    dir="ltr"
-                    value={postTrackId}
-                    onChange={(e) => setPostTrackId(e.target.value)}
-                    max={24}
-                    className="border-0 w-full md:w-77.5 bg-card/60! h-12 text-lg! md:text-xl! font-bold"
-                  />
-                  <Button
-                    variant="default"
-                    size="icon"
-                    className="size-12! bg-card/60! text-foreground hover:bg-card/50!"
-                    onClick={() => CopyCode()}
-                  >
-                    <Copy className="size-7" />
-                  </Button>
-                </div>
-                <Link
-                  target="_blank"
-                  href={`https://tracking.post.ir/?id=${postTrackId}`}
-                >
-                  <Button variant={"outline"} className="flex items-center">
-                    <LinkIcon />
-                    پیگیری مستقیم از سایت اداره پست
-                  </Button>
-                </Link>
-              </div>
-            )}
-
-            <OrderProgress status={order.status} />
-
-            <div className="py-4 border-t grid grid-cols-2 gap-3 md:grid-cols-3 pointer-events-none">
-              {order.order_items?.map((item: any, index: number) => 
-                {
-                  if (item.products?.type === "phonecase") {
-                    return (
-                      <div key={item.id || index} className="w-full">
-                        <PhonecaseCard
-                          image_url={item?.products?.image_url}
-                          size="big"
-                        />
-                      </div>
-                    )
-                  } else if (item.products?.type === "poster") {
-                    return (
-                      <div key={item.id || index} className="w-full">
-                        <PosterCard
-                          image_url={item?.products?.image_url}
-                          size="big"
-                        />
-                      </div>
-                    )
-                  }
-                }
+    <div className="min-h-dvh w-full max-w-md mx-auto px-4 py-6 space-y-3 animate-in fade-in duration-500">
+      {/* ── Header ── */}
+      <Card className="shadow-none border-border bg-white dark:bg-card">
+        <CardContent className="p-4">
+          {/* Status */}
+          <div className="flex justify-center mb-5">
+            <span
+              className={cn(
+                "text-xs px-4 py-2 rounded-full font-semibold",
+                getStatusBadgeClass(order.status),
               )}
+            >
+              {getStatusLabel(order.status)}
+            </span>
+          </div>
+
+          {/* Track number */}
+          <div className="text-center mb-4">
+            <p className="text-[11px] text-muted-foreground mb-0.5">
+              شماره سفارش
+            </p>
+            <p
+              dir="ltr"
+              className="text-2xl font-mono font-bold tracking-widest text-foreground"
+            >
+              #{order?.track_id}
+            </p>
+          </div>
+
+          {/* Price */}
+          <div className="text-center mb-4">
+            <p className="text-2xl font-extrabold text-foreground inline-flex items-center gap-1">
+              <span>{new Intl.NumberFormat("fa-IR").format(totalPrice)}</span>
+              <TomanIcon className="size-4 text-foreground/60" />
+            </p>
+          </div>
+
+          {/* Date */}
+          <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              <Calendar size={12} />
+              {new Date(order.created_at).toLocaleDateString("fa-IR", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+            <span className="text-border">•</span>
+            <span className="inline-flex items-center gap-1">
+              <Clock size={12} />
+              {new Date(order.created_at).toLocaleTimeString("fa-IR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Post tracking (delivered only) ── */}
+      {order.status === "delivered" && order.track_post_id && (
+        <Card className="shadow-none py-0 border-border bg-indigo-200 dark:bg-card">
+          <CardContent className="p-4">
+            <h3 className="text-sm font-semibold text-foreground mb-3">
+              کد پیگیری پست
+            </h3>
+            <div className="flex items-center gap-2">
+              <Input
+                readOnly
+                dir="ltr"
+                value={postTrackId}
+                onChange={(e) => setPostTrackId(e.target.value)}
+                className="border-border bg-background font-bold"
+              />
+              <Button
+                variant="default"
+                size="icon"
+                className="size-10 shrink-0"
+                onClick={copyPostTrack}
+              >
+                <Copy className="size-4" />
+              </Button>
+            </div>
+            <Link
+              target="_blank"
+              href={`https://tracking.post.ir/?id=${postTrackId}`}
+              className="block mt-2"
+            >
+              <Button
+                variant="ghost"
+                size="lg"
+                className="w-full hover:bg-background/20 gap-2"
+              >
+                <LinkIcon className="size-3.5" />
+                پیگیری از سایت اداره پست
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Timeline ── */}
+      <Card className="shadow-none border-border bg-white dark:bg-card">
+        <CardContent className="px-4 pt-2 pb-2">
+          <OrderProgress status={order.status} />
+        </CardContent>
+      </Card>
+
+      {/* ── Products ── */}
+      {items.length > 0 && (
+        <Card className="shadow-none border-border bg-white dark:bg-card">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-foreground">
+                اقلام سفارش
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                {items.length} عدد
+              </span>
             </div>
 
-            <div className="w-full flex flex-col gap-4 pt-4 border-t">
-              <Link href="/" target="_blank" className="w-full">
-                <Button variant="default" size="lg" className="w-full">
-                  <LinkIcon />
-                  بازگشت به کالکتینا
-                </Button>
-              </Link>
-              {/* <Link href="/dashboard" target="_blank" className="w-full">
-                <Button variant="outline" size="lg" className="w-full">
-                  <LinkIcon />
-                  داشبورد من
-                </Button>
-              </Link> */}
+            <div className="space-y-2">
+              {items.map((item, index) => {
+                const imageUrl = item.products?.image_url || undefined;
+                const type = item.products?.type;
+                const isPhonecase = type === "phonecase";
+                const spec = isPhonecase
+                  ? [item.phone_brand, item.phone_model]
+                      .filter(Boolean)
+                      .join(" · ")
+                  : item.poster_atr || "پوستر";
+                const price = Number(item.product_price) || 0;
+
+                return (
+                  <div
+                    key={item.id || index}
+                    className="flex items-stretch gap-3 p-2 rounded-lg bg-background border border-border"
+                  >
+                    {/* Product card thumbnail */}
+                    <div className="relative w-14 flex-shrink-0 overflow-hidden rounded-md border border-border/60">
+                      {isPhonecase ? (
+                        <PhonecaseCard
+                          image_url={imageUrl}
+                          name={item.product_name}
+                          size="small"
+                          quality="low"
+                        />
+                      ) : (
+                        <PosterCard
+                          image_url={imageUrl}
+                          name={item.product_name}
+                          size="small"
+                          quality="low"
+                        />
+                      )}
+                      {item.quantity > 1 && (
+                        <div className="absolute top-0.5 left-0.5 z-50 flex items-center justify-center size-4 rounded-full bg-foreground text-background text-[8px] font-bold">
+                          {item.quantity}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info + price */}
+                    <div className="flex-1 min-w-0 flex items-center justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {item.product_name}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {spec}
+                        </p>
+                      </div>
+                      <p className="text-sm font-semibold text-foreground whitespace-nowrap flex items-center gap-0.5 mr-2">
+                        <span>
+                          {new Intl.NumberFormat("fa-IR").format(price)}
+                        </span>
+                        <TomanIcon className="size-2.5" />
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Total */}
+            <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">مجموع</span>
+              <p className="text-base font-bold text-foreground flex items-center gap-1">
+                <span>{new Intl.NumberFormat("fa-IR").format(totalPrice)}</span>
+                <TomanIcon className="size-3" />
+              </p>
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* ── Back ── */}
+      <div className="pt-2 pb-8">
+        <Link href="/" target="_blank" className="block">
+          <Button variant="outline" className="w-full gap-2">
+            <LinkIcon className="size-4" />
+            بازگشت به کالکتینا
+          </Button>
+        </Link>
       </div>
-    </>
+    </div>
   );
 }
