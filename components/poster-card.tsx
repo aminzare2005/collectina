@@ -65,7 +65,7 @@ function PosterCard(props: Props) {
       ) : (
         <div className="h-full w-full">{image}</div>
       )}
-      <NoiseTexture noiseOpacity={0.4} className="z-100" />
+      <NoiseTexture noiseOpacity={0.4} />
     </div>
   );
 }

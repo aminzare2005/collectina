@@ -130,7 +130,7 @@ export function CartItem({
   return (
     <Card
       className={cn(
-        "w-full bg-card border p-4 rounded-2xl overflow-hidden transition-all",
+        "w-full bg-card border border-border p-4 overflow-hidden transition-all",
         isLoading && "opacity-70",
       )}
     >
@@ -141,8 +141,8 @@ export function CartItem({
 
         <div className="col-span-3 flex flex-col h-full justify-between gap-1">
           <div>
-            <h2 className="text-2xl font-semibold opacity-90">{name}</h2>
-            <p className="text-lg text-muted-foreground">
+            <h2 className="text-xl font-semibold opacity-90">{name}</h2>
+            <p className="text-md text-muted-foreground">
               {type === "phonecase"
                 ? "قاب موبایل"
                 : type === "poster"

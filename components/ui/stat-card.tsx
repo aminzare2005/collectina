@@ -13,7 +13,7 @@ export function StatCard({
   gradient?: string;
 }) {
   return (
-    <Card className="border-0 rounded-2xl">
+    <Card className="rounded-2xl shadow-none">
       <CardContent className="px-6">
         <div className="flex flex-col gap-4 items-center justify-center">
           <div

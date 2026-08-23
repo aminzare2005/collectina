@@ -226,7 +226,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl border bg-card p-6 shadow-sm space-y-6"
+      className="rounded-2xl border border-border bg-card p-6 space-y-6"
     >
       <h2 className="text-lg font-semibold text-center mb-2">
         ویرایش اطلاعات ارسال

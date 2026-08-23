@@ -333,7 +333,7 @@ export default function CartCheckoutPage() {
           <section
             ref={checkoutRef}
             id="checkout"
-            className="w-full scroll-mt-28 rounded-2xl border border-border/60 bg-card/40 px-4 py-6 md:px-5"
+            className="w-full scroll-mt-28 border border-border bg-card rounded-2xl px-4 py-6 md:px-5"
             style={{ scrollMarginBottom: stickySummaryHeight }}
             aria-label="اطلاعات ارسال"
           >
@@ -388,16 +388,16 @@ export default function CartCheckoutPage() {
                 onClick={handleStickyPrimaryAction}
                 disabled={checkoutUi.isLoading}
               >
-                {checkoutUi.isLoading
-                  ? "در حال پردازش..."
-                  : checkoutUi.canSubmit ? (
-                    <span className="inline-flex items-center gap-1">
-                      <span>پرداخت {formatNumber(checkoutUi.payAmount)}</span>
-                      <TomanIcon className="size-4" />
-                    </span>
-                  ) : (
-                    "تکمیل اطلاعات ارسال"
-                  )}
+                {checkoutUi.isLoading ? (
+                  "در حال پردازش..."
+                ) : checkoutUi.canSubmit ? (
+                  <span className="inline-flex items-center gap-1">
+                    <span>پرداخت {formatNumber(checkoutUi.payAmount)}</span>
+                    <TomanIcon className="size-4" />
+                  </span>
+                ) : (
+                  "تکمیل اطلاعات ارسال"
+                )}
                 <ArrowLeftIcon className="size-5" />
               </Button>
             </div>
@@ -409,7 +409,7 @@ export default function CartCheckoutPage() {
         ref={stickySummaryRef}
         className="fixed z-50 bottom-0 left-0 right-0 mx-auto w-full max-w-2xl p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:hidden"
       >
-        <div className="rounded-xl border border-input bg-background/90 p-4 shadow-lg backdrop-blur-md">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-lg">
           <CartPriceSummary
             collapsible
             subtotal={subtotal}
@@ -425,16 +425,16 @@ export default function CartCheckoutPage() {
             onClick={handleStickyPrimaryAction}
             disabled={checkoutUi.isLoading}
           >
-            {checkoutUi.isLoading
-              ? "در حال پردازش..."
-              : checkoutUi.canSubmit ? (
-                <span className="inline-flex items-center gap-1">
-                  <span>پرداخت {formatNumber(checkoutUi.payAmount)}</span>
-                  <TomanIcon className="size-4" />
-                </span>
-              ) : (
-                "تکمیل اطلاعات ارسال"
-              )}
+            {checkoutUi.isLoading ? (
+              "در حال پردازش..."
+            ) : checkoutUi.canSubmit ? (
+              <span className="inline-flex items-center gap-1">
+                <span>پرداخت {formatNumber(checkoutUi.payAmount)}</span>
+                <TomanIcon className="size-4" />
+              </span>
+            ) : (
+              "تکمیل اطلاعات ارسال"
+            )}
             <ArrowLeftIcon className="size-5" />
           </Button>
         </div>

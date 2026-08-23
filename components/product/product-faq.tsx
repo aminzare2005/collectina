@@ -21,7 +21,7 @@ export function ProductFaq({ items, title = "سوالات متداول" }: Props
   return (
     <div className="space-y-3">
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>
-      <Accordion type="single" collapsible className="w-full rounded-xl border border-border/60 px-1">
+      <Accordion type="single" collapsible className="w-full rounded-xl border border-border px-1">
         {items.map((item) => (
           <AccordionItem
             key={item.id}

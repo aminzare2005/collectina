@@ -20,7 +20,7 @@ export function ProductHighlights({ items, className }: Props) {
         return (
           <li
             key={item.title}
-            className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/30 p-3.5"
+            className="flex items-center gap-3 rounded-xl border border-border bg-card p-3.5"
           >
             <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted border border-border/50">
               <Icon className="size-4 text-foreground/80" aria-hidden />

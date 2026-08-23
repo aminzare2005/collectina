@@ -22,7 +22,7 @@ export default function HomeBridge() {
   return (
     <section
       aria-label="مزایای خرید"
-      className="rounded-2xl border border-border/50 bg-muted/30 px-4 py-5 md:px-6 md:py-6"
+      className="rounded-2xl border border-border bg-card px-4 py-5 md:px-6 md:py-6"
     >
       <div className="mb-4 space-y-1 text-center md:mb-5 md:text-start">
         <h2 className="text-base font-semibold md:text-lg">

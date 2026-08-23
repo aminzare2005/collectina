@@ -45,7 +45,7 @@ export default function HomeCategoryNav({
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-3 rounded-2xl border border-border/60 bg-card/40 px-4 py-3.5",
+              "flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5",
               "transition-colors hover:bg-card/70 active:scale-[0.99]",
               "min-h-14",
             )}
